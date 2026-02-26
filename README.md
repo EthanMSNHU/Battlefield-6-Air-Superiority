@@ -105,7 +105,16 @@ If you want to build another version (for example v6), update the `--entrypoint`
   - runtime setter updates (`SetUITextLabel`, `SetUIWidgetSize`, `SetUIWidgetVisible`)
   - per-player widget name mapping
 
+## Ownership and Attribution
+
+- Original project files by Ethan Mills include:
+  - `code/Airsup_v1.ts` through `code/Airsup_v6.ts`
+  - project-specific documentation files in the repository root and `ProjectVersionsReadMe's/`
+- Supporting framework/template directories were sourced from:
+  - `https://github.com/deluca-mike/bf6-portal-scripting-template`
+- See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for the full attribution and directory-level mapping.
+
 ## License / Copyright
 
-Copyright (c) 2026 Ethan Mills.
-All rights reserved.
+Copyright (c) 2026 Ethan Mills for original project files.
+Third-party files remain under their respective upstream licenses.
