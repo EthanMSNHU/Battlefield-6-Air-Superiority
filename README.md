@@ -1,6 +1,6 @@
 ﻿# Battlefield 6 Air Superiority
 
-Custom Battlefield Portal game mode focused on aerial objective control, team-based ticket drain, and a custom HUD/scoreboard workflow built in TypeScript.
+Custom Battlefield Portal game mode focused on domination-style aerial objective control and a custom HUD/scoreboard workflow built in TypeScript.
 
 ## Overview
 
@@ -13,7 +13,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
   - Kills
   - Deaths
   - Captures
-- Objective-based team scoring model:
+- Domination-style objective control scoring model:
   - 3 objectives held: score every 1 second
   - 2 objectives held: score every 5 seconds
   - 1 objective held: score every 10 seconds
@@ -60,37 +60,6 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
   - Side-by-side progression summary from v1 through v6.
 - `AiReadMe_v4.txt`
   - Architecture notes and stability lessons captured during v4-era iteration.
-
-## Requirements
-
-- Node.js 18+ (recommended)
-- npm
-
-## Installation
-
-```bash
-npm install
-```
-
-## Build
-
-Current build script:
-
-```bash
-npm run build
-```
-
-By default, `package.json` builds from:
-
-```text
-./code/Airsup_v4.ts
-```
-
-If you want to build another version (for example v6), update the `--entrypoint` in `package.json`:
-
-```json
-"build": "bf6-portal-bundler --entrypoint ./code/Airsup_v6.ts --outDir ./dist"
-```
 
 ## Localization Strings
 
