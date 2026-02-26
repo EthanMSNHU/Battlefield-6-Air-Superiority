@@ -1,0 +1,29 @@
+﻿Airsup Version Comparison (v1 -> v6)
+===================================
+
+v1
+- Core domination scoring model + custom scoreboard stat tracking.
+
+v2
+- Adds first custom HUD shell (score widgets + static bars).
+
+v3
+- Adds objective placeholder visuals and A/B/C labels.
+
+v4
+- Introduces authoritative score state and map-driven setter updates for stable HUD behavior.
+
+v5
+- Adds dynamic bar fills tied to team score values.
+
+v6
+- Adds live objective ownership UI states (neutral/friendly/enemy) per player perspective.
+
+Architecture Progression
+- v1-v3: Gameplay-first, visual HUD expansion.
+- v4: Stability pivot (state + setters + widget map).
+- v5-v6: Feature-complete HUD feedback and objective-state visualization.
+
+Best Practical Baseline
+- Most complete file: Airsup_v6.ts
+- Simplest stable architecture reference: Airsup_v4.ts

@@ -1,0 +1,19 @@
+﻿Airsup_v5.ts Explanation
+========================
+
+Purpose
+- Adds dynamic score bar fill behavior to stabilized v4 HUD system.
+
+Main Changes Over v4
+- PlayerHud map now includes bar fill widget names.
+- updateAllHudScores now updates:
+  - Score label text
+  - Bar fill size (friendly/enemy)
+
+Bar Logic
+- Uses MAX_SCORE and MAX_BAR_WIDTH to scale fill widths.
+- Friendly side uses positive width growth.
+- Enemy side uses negative width growth to mirror direction.
+
+Result
+- HUD now has both dynamic numeric scores and dynamic visual progression bars.

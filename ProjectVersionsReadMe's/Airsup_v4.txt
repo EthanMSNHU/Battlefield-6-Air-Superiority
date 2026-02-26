@@ -1,0 +1,21 @@
+﻿Airsup_v4.ts Explanation
+========================
+
+Purpose
+- Major architecture stabilization for HUD score updates.
+
+Main Changes Over v3
+- Adds authoritative team score object:
+  - gameState.team1Score
+  - gameState.team2Score
+- Adds PlayerHud map keyed by player object ID to store widget names.
+- Stops relying on widget recreation; updates existing widgets with setters.
+
+Core Flow
+- updateTeamScores mutates gameState + SetGameModeScore.
+- On score change: updates scoreboard header + all HUD score labels.
+- updateAllHudScores maps global team scores into player-relative friendly/enemy values.
+
+Why It Matters
+- Prevents stacked/duplicate UI behavior.
+- Centralizes score truth for stable HUD/scoreboard sync.

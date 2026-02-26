@@ -1,0 +1,34 @@
+﻿Airsup_v6.ts Explanation
+========================
+
+Purpose
+- Most complete version: domination scoring + mirrored HUD + dynamic bars + live objective ownership states.
+
+Main Changes Over v5
+- PlayerHud map expanded with objective state widgets for A/B/C:
+  - Neutral
+  - Friendly
+  - Enemy
+- Adds objective visibility controller:
+  - updateSingleObjectiveVisibility(...)
+- Adds global objective refresh:
+  - updateAllObjectiveIcons()
+
+Core Runtime Loop
+- Every second:
+  - updateTeamScores()
+  - updateAllObjectiveIcons()
+
+Objective State Logic
+- Each objective has three overlapping state widgets.
+- All three are hidden, then one is shown based on:
+  - objective owner
+  - viewing player's team
+- Neutral shown when owner is neither team 1 nor team 2.
+
+Player Lifecycle
+- On join: initializes stats, creates HUD, updates scores, updates objective icons.
+- On capture: rewards players and refreshes objective icons.
+
+Result
+- Full player-relative HUD behavior for both scoring and objective control state.

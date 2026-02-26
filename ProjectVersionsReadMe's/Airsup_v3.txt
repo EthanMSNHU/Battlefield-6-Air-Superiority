@@ -1,0 +1,18 @@
+﻿Airsup_v3.ts Explanation
+========================
+
+Purpose
+- Extends v2 HUD by introducing objective visual placeholders.
+
+Main Additions Over v2
+- Objective A/B/C plates (solid boxes) added to HUD.
+- Objective letters (A/B/C) layered above boxes.
+- Preserves gameplay and scoreboard logic from v2.
+
+HUD Notes
+- Uses shared constants (Y/size/spacing) to align objective elements.
+- Uses depth layering so labels stay visible above plates.
+
+Functions
+- createHUD(player): now builds score boxes, static bars, objective boxes, and objective letters.
+- All scoring/player event functions remain behaviorally same as v2.
