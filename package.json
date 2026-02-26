@@ -1,0 +1,12 @@
+{
+  "name": "airsup",
+  "version": "1.0.0",
+  "scripts": {
+  "build": "bf6-portal-bundler --entrypoint ./code/Airsup_v4.ts --outDir ./dist"
+},
+  "devDependencies": {
+    "@types/node": "^20.6.0",
+    "bf6-portal-bundler": "^1.1.0",
+    "typescript": "^5.3.3"
+  }
+}

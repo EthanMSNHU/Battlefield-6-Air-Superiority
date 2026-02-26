@@ -1,0 +1,38 @@
+# Godot 4+ specific ignores
+.godot/
+.nomedia
+
+# Godot-specific ignores
+.import/
+export.cfg
+export_credentials.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# TypeScript/Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Python local runtime
+python/
+venv/
+.venv/
+
+# Local export artifacts
+export/
+
+# Local binaries/tools
+Godot_v4.4.1-stable_win64.exe
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
