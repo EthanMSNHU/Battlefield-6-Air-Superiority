@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Airsup_v6
  * Full Air Sup mode with mirrored score HUD, dynamic bars, and live objective ownership icons.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
@@ -35,16 +35,19 @@ interface PlayerHud {
 
     // Objective A state widgets (only one should be visible at a time).
     objA_Neutral: string;
+    objA_NeutralInner: string;
     objA_Friendly: string;
     objA_Enemy: string;
 
     // Objective B state widgets.
     objB_Neutral: string;
+    objB_NeutralInner: string;
     objB_Friendly: string;
     objB_Enemy: string;
 
     // Objective C state widgets.
     objC_Neutral: string;
+    objC_NeutralInner: string;
     objC_Friendly: string;
     objC_Enemy: string;
 }
@@ -93,6 +96,7 @@ export async function OnGameModeStarted() {
     // Initialize scoreboard and team header labels.
     setUpScoreBoard();
     updateScoreBoardHeader();
+    initializeAllCurrentPlayers();
 
     // Main mode tick: update tickets and objective ownership icons once per second.
     while(mod.GetMatchTimeRemaining() > 0) {
@@ -100,6 +104,21 @@ export async function OnGameModeStarted() {
         updateTeamScores();
         updateAllObjectiveIcons();
     }
+}
+
+function initializeAllCurrentPlayers(){
+    // Ensure players already present when the mode starts are initialized.
+    const players = mod.AllPlayers();
+    const count = mod.CountOf(players);
+
+    for (let i = 0; i < count; i++){
+        const player = mod.ValueInArray(players, i) as mod.Player;
+        initializePlayerState(player);
+    }
+
+    // Sync once after the batch init.
+    updateAllHudScores();
+    updateAllObjectiveIcons();
 }
 
 
@@ -309,25 +328,35 @@ function createHUD(player: mod.Player){
     const redBarFillName = "HUD_RED_BAR_FILL_" + id;
 
     const objA_Neutral = "HUD_OBJ_A_NEUTRAL_" + id;
+    const objA_NeutralInner = "HUD_OBJ_A_NEUTRAL_INNER_" + id;
     const objA_Friendly = "HUD_OBJ_A_FRIENDLY_" + id;
     const objA_Enemy = "HUD_OBJ_A_ENEMY_" + id;
 
     const objB_Neutral = "HUD_OBJ_B_NEUTRAL_" + id;
+    const objB_NeutralInner = "HUD_OBJ_B_NEUTRAL_INNER_" + id;
     const objB_Friendly = "HUD_OBJ_B_FRIENDLY_" + id;
     const objB_Enemy = "HUD_OBJ_B_ENEMY_" + id;
 
     const objC_Neutral = "HUD_OBJ_C_NEUTRAL_" + id;
+    const objC_NeutralInner = "HUD_OBJ_C_NEUTRAL_INNER_" + id;
     const objC_Friendly = "HUD_OBJ_C_FRIENDLY_" + id;
     const objC_Enemy = "HUD_OBJ_C_ENEMY_" + id;
 
     const OBJ_Y = 70;
     const OBJ_SIZE = 46;
+    const OBJ_INNER_SIZE = OBJ_SIZE - 8;
     const OBJ_SPACING = 90;
+    const OBJ_LETTER_PLATE_SIZE = OBJ_SIZE - 14;
+    const OBJ_LETTER_PLATE_COLOR = mod.CreateVector(0,0,0);
+    const OBJ_LETTER_PLATE_ALPHA = 0;
     const LETTER_COLOR = mod.CreateVector(1,1,1);
 
-    const COLOR_NEUTRAL = mod.CreateVector(0.9, 0.9, 0.85);
+    const COLOR_NEUTRAL = mod.CreateVector(0.39, 0.39, 0.39);
+    const COLOR_NEUTRAL_INNER = mod.CreateVector(0, 0, 0);
     const COLOR_FRIENDLY = mod.CreateVector(0.2, 0.55, 1);
     const COLOR_ENEMY = mod.CreateVector(1, 0.25, 0.25);
+    const NEUTRAL_ALPHA = 1;
+    const NEUTRAL_INNER_ALPHA = 0.39;
 
     // =====================================================
     // CREATE ROOT
@@ -489,15 +518,35 @@ function createHUD(player: mod.Player){
 // -----------------------------------------------------------------------------
 // A STACK
 // -----------------------------------------------------------------------------
-// LETTER A
+// LETTER BACKING A
 mod.AddUIText(
-    "HUD_OBJ_LETTER_A_" + id,
+    "HUD_OBJ_LETTER_BG_A_" + id,
     mod.CreateVector(-OBJ_SPACING, OBJ_Y, 0),
-    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.CreateVector(OBJ_LETTER_PLATE_SIZE, OBJ_LETTER_PLATE_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
-    15, // must be higher than box depth
+    11,
+    OBJ_LETTER_PLATE_COLOR,
+    OBJ_LETTER_PLATE_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
+
+// LETTER A
+mod.AddUIText(
+    "HUD_OBJ_LETTER_A_" + id,
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    100, // stable depth to avoid projection offset/clipping
     mod.CreateVector(0,0,0),
     0,
     mod.UIBgFill.None,
@@ -511,13 +560,32 @@ mod.AddUIText(
 
 // LETTER B
 mod.AddUIText(
-    "HUD_OBJ_LETTER_B_" + id,
+    "HUD_OBJ_LETTER_BG_B_" + id,
     mod.CreateVector(0, OBJ_Y, 0),
-    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.CreateVector(OBJ_LETTER_PLATE_SIZE, OBJ_LETTER_PLATE_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
-    15,
+    11,
+    OBJ_LETTER_PLATE_COLOR,
+    OBJ_LETTER_PLATE_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
+
+mod.AddUIText(
+    "HUD_OBJ_LETTER_B_" + id,
+    mod.CreateVector(0, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    100,
     mod.CreateVector(0,0,0),
     0,
     mod.UIBgFill.None,
@@ -531,13 +599,32 @@ mod.AddUIText(
 
 // LETTER C
 mod.AddUIText(
-    "HUD_OBJ_LETTER_C_" + id,
+    "HUD_OBJ_LETTER_BG_C_" + id,
     mod.CreateVector(OBJ_SPACING, OBJ_Y, 0),
-    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.CreateVector(OBJ_LETTER_PLATE_SIZE, OBJ_LETTER_PLATE_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
-    15,
+    11,
+    OBJ_LETTER_PLATE_COLOR,
+    OBJ_LETTER_PLATE_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
+
+mod.AddUIText(
+    "HUD_OBJ_LETTER_C_" + id,
+    mod.CreateVector(OBJ_SPACING, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    100,
     mod.CreateVector(0,0,0),
     0,
     mod.UIBgFill.None,
@@ -552,14 +639,32 @@ mod.AddUIText(
 // Start with neutral visible so UI is valid before first ownership update pass.
 mod.AddUIText(
     objA_Neutral,
-    mod.CreateVector(-OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
     2,
     COLOR_NEUTRAL,
-    0.8,
+    NEUTRAL_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
+mod.AddUIText(
+    objA_NeutralInner,
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    3,
+    COLOR_NEUTRAL_INNER,
+    NEUTRAL_INNER_ALPHA,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -579,7 +684,7 @@ mod.AddUIText(
     false,
     2,
     COLOR_FRIENDLY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -599,7 +704,7 @@ mod.AddUIText(
     false,
     2,
     COLOR_ENEMY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -616,14 +721,30 @@ mod.AddUIText(
 // B STACK
 // -----------------------------------------------------------------------------
 mod.AddUIText(objB_Neutral,
-    mod.CreateVector(0, OBJ_Y, 0),
+    mod.CreateVector(0, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
     2,
     COLOR_NEUTRAL,
-    0.8,
+    NEUTRAL_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
+mod.AddUIText(objB_NeutralInner,
+    mod.CreateVector(0, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    3,
+    COLOR_NEUTRAL_INNER,
+    NEUTRAL_INNER_ALPHA,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -640,7 +761,7 @@ mod.AddUIText(objB_Friendly,
     false,
     2,
     COLOR_FRIENDLY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -657,7 +778,7 @@ mod.AddUIText(objB_Enemy,
     false,
     2,
     COLOR_ENEMY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -673,14 +794,30 @@ mod.AddUIText(objB_Enemy,
 // C STACK
 // -----------------------------------------------------------------------------
 mod.AddUIText(objC_Neutral,
-    mod.CreateVector(OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
     true,
     2,
     COLOR_NEUTRAL,
-    0.8,
+    NEUTRAL_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
+mod.AddUIText(objC_NeutralInner,
+    mod.CreateVector(OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    3,
+    COLOR_NEUTRAL_INNER,
+    NEUTRAL_INNER_ALPHA,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -697,7 +834,7 @@ mod.AddUIText(objC_Friendly,
     false,
     2,
     COLOR_FRIENDLY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -714,7 +851,7 @@ mod.AddUIText(objC_Enemy,
     false,
     2,
     COLOR_ENEMY,
-    0.8,
+    1,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -722,6 +859,67 @@ mod.AddUIText(objC_Enemy,
     0,
     mod.UIAnchor.Center,
     player);
+
+// ---------------------------------------------------------------------------
+// LETTER FRONT PASS
+// ---------------------------------------------------------------------------
+// Render letters last so they always stay visible over solid objective plates.
+mod.AddUIText(
+    "HUD_OBJ_LETTER_FRONT_A_" + id,
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    12,
+    mod.CreateVector(0,0,0),
+    0,
+    mod.UIBgFill.None,
+    mod.Message(mod.stringkeys.OBJ_A),
+    30,
+    LETTER_COLOR,
+    1,
+    mod.UIAnchor.Center,
+    player
+);
+
+mod.AddUIText(
+    "HUD_OBJ_LETTER_FRONT_B_" + id,
+    mod.CreateVector(0, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    12,
+    mod.CreateVector(0,0,0),
+    0,
+    mod.UIBgFill.None,
+    mod.Message(mod.stringkeys.OBJ_B),
+    30,
+    LETTER_COLOR,
+    1,
+    mod.UIAnchor.Center,
+    player
+);
+
+mod.AddUIText(
+    "HUD_OBJ_LETTER_FRONT_C_" + id,
+    mod.CreateVector(OBJ_SPACING, OBJ_Y - 2, 0),
+    mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    true,
+    12,
+    mod.CreateVector(0,0,0),
+    0,
+    mod.UIBgFill.None,
+    mod.Message(mod.stringkeys.OBJ_C),
+    30,
+    LETTER_COLOR,
+    1,
+    mod.UIAnchor.Center,
+    player
+);
 
 
 
@@ -736,12 +934,15 @@ mod.AddUIText(objC_Enemy,
         blueBarFillName,
         redBarFillName,
         objA_Neutral,
+        objA_NeutralInner,
         objA_Friendly,
         objA_Enemy,
         objB_Neutral,
+        objB_NeutralInner,
         objB_Friendly,
         objB_Enemy,
         objC_Neutral,
+        objC_NeutralInner,
         objC_Friendly,
         objC_Enemy
     });
@@ -750,18 +951,21 @@ function updateSingleObjectiveVisibility(
     playerTeam: mod.Team,
     ownerTeam: mod.Team,
     neutralName: string,
+    neutralInnerName: string,
     friendlyName: string,
     enemyName: string
 ){
     // Resolve objective box visibility for neutral/friendly/enemy from this player's perspective.
     const neutral = mod.FindUIWidgetWithName(neutralName);
+    const neutralInner = mod.FindUIWidgetWithName(neutralInnerName);
     const friendly = mod.FindUIWidgetWithName(friendlyName);
     const enemy = mod.FindUIWidgetWithName(enemyName);
 
-    if (!neutral || !friendly || !enemy) return;
+    if (!neutral || !neutralInner || !friendly || !enemy) return;
 
     // Hard reset first so only one state can be visible after this function.
     mod.SetUIWidgetVisible(neutral, false);
+    mod.SetUIWidgetVisible(neutralInner, false);
     mod.SetUIWidgetVisible(friendly, false);
     mod.SetUIWidgetVisible(enemy, false);
 
@@ -772,6 +976,7 @@ function updateSingleObjectiveVisibility(
          !mod.Equals(ownerTeam, mod.GetTeam(2)))
     ){
         mod.SetUIWidgetVisible(neutral, true);
+        mod.SetUIWidgetVisible(neutralInner, true);
         return;
     }
 
@@ -808,6 +1013,7 @@ function updateAllObjectiveIcons(){
             playerTeam,
             ownerA,
             hud.objA_Neutral,
+            hud.objA_NeutralInner,
             hud.objA_Friendly,
             hud.objA_Enemy
         );
@@ -816,6 +1022,7 @@ function updateAllObjectiveIcons(){
             playerTeam,
             ownerB,
             hud.objB_Neutral,
+            hud.objB_NeutralInner,
             hud.objB_Friendly,
             hud.objB_Enemy
         );
@@ -824,6 +1031,7 @@ function updateAllObjectiveIcons(){
             playerTeam,
             ownerC,
             hud.objC_Neutral,
+            hud.objC_NeutralInner,
             hud.objC_Friendly,
             hud.objC_Enemy
         );
@@ -836,7 +1044,13 @@ function updateAllObjectiveIcons(){
 // PLAYER EVENTS
 // -----------------------------------------------------------------------------
 export function OnPlayerJoinGame(player: mod.Player){
+    initializePlayerState(player);
+    // Force immediate sync so late-join players see correct score/objective states instantly.
+    updateAllHudScores();
+    updateAllObjectiveIcons();
+}
 
+function initializePlayerState(player: mod.Player){
     // Initialize per-player stat variables when they join.
     mod.SetVariable(mod.ObjectVariable(player, playerKills), 0);
     mod.SetVariable(mod.ObjectVariable(player, playerDeaths), 0);
@@ -845,9 +1059,6 @@ export function OnPlayerJoinGame(player: mod.Player){
 
     updatePlayerScoreBoard(player);
     createHUD(player);
-    // Force immediate sync so late-join players see correct score/objective states instantly.
-    updateAllHudScores();
-    updateAllObjectiveIcons();
 }
 
 function updatePlayerScoreBoard(player: mod.Player){
