@@ -1,6 +1,18 @@
-﻿/**
+/**
  * Airsup_v6
  * Full Air Sup mode with mirrored score HUD, dynamic bars, and live objective ownership icons.
+ *
+ * Scope:
+ * - Adds objective ownership-state icon stacks (neutral/friendly/enemy).
+ * - Keeps v5 scoring/bar systems and extends HUD state management.
+ *
+ * Runtime Model:
+ * 1. Mode startup configures objectives and authoritative scoreboard state.
+ * 2. Per-second loop updates team scores and objective icon visibility.
+ * 3. HUD widgets are created once, then controlled via text/size/visibility setters.
+ *
+ * Notes:
+ * - Objective visuals use exclusive visibility toggles to guarantee one active state per point.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

@@ -1,6 +1,19 @@
-﻿/**
+/**
  * Airsup_v4
  * Stabilizes HUD updates using authoritative team state and setter-based widget updates.
+ *
+ * Scope:
+ * - Introduces an authoritative local score state (gameState).
+ * - Drives scoreboard header + HUD values from one source of truth.
+ * - Moves toward mutate-in-place UI updates instead of recreation.
+ *
+ * Runtime Model:
+ * 1. Reset authoritative state at match start.
+ * 2. Evaluate objective ownership and timer cadence per team each tick.
+ * 3. Apply score changes, then update header/HUD only when values changed.
+ *
+ * Notes:
+ * - scoreChanged gating is a key performance stability improvement.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

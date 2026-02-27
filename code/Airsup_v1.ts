@@ -1,6 +1,20 @@
-﻿/**
+/**
  * Airsup_v1
  * Core Air Sup game mode with capture-point scoring and custom player scoreboard stats.
+ *
+ * Scope:
+ * - Implements baseline match loop, capture-point ownership scoring, and custom scoreboard columns.
+ * - Uses per-team timers to translate objective control into ticket gain intervals.
+ *
+ * Runtime Model:
+ * 1. Configure objectives + scoreboard in OnGameModeStarted.
+ * 2. Tick every second and recalculate held objectives for both teams.
+ * 3. Apply score increments when each team timer reaches its ownership-defined interval.
+ * 4. Mirror team totals in header and maintain per-player row stats from event callbacks.
+ *
+ * Notes:
+ * - This file is the mechanical foundation for all later HUD-heavy versions.
+ * - Gameplay rules here are intentionally straightforward for stability.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

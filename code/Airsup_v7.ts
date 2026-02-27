@@ -1,6 +1,18 @@
 /**
- * Airsup_v6
+ * Airsup_v7
  * Full Air Sup mode with mirrored score HUD, dynamic bars, and live objective ownership icons.
+ *
+ * Scope:
+ * - Iterative polish pass on v6: objective plate contrast, alignment, and letter readability.
+ * - Preserves scoring logic while refining HUD layering and legibility behavior.
+ *
+ * Runtime Model:
+ * 1. Team score state remains authoritative and drives header/HUD outputs.
+ * 2. Objective ownership icons update continuously from live capture ownership.
+ * 3. Layering/alpha tuning improves objective marker clarity in varied map lighting.
+ *
+ * Notes:
+ * - This version is visual-quality focused and intended for rapid in-match tuning.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

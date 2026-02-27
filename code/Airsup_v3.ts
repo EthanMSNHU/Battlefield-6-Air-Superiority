@@ -1,6 +1,19 @@
-﻿/**
+/**
  * Airsup_v3
  * Extends the HUD with objective placeholder boxes and A/B/C objective labels.
+ *
+ * Scope:
+ * - Builds on v2 HUD by introducing objective slot visuals and labeling structure.
+ * - Keeps ticket/scoring systems stable while expanding presentation.
+ *
+ * Runtime Model:
+ * 1. Configure objectives and scoreboard at startup.
+ * 2. Build HUD roots/widgets once per player.
+ * 3. Continue score processing in a fixed 1-second loop.
+ * 4. Prepare objective UI stack for richer ownership-state rendering in later versions.
+ *
+ * Notes:
+ * - This version focuses on layout scaffolding and readability placement.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

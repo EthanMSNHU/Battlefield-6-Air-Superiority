@@ -1,6 +1,18 @@
-﻿/**
+/**
  * Airsup_v5
  * Adds dynamic score bar fills to the stabilized score HUD and scoreboard flow.
+ *
+ * Scope:
+ * - Extends v4 authoritative scoring with proportional visual bar feedback.
+ * - Maintains player-relative friendly/enemy mirroring for HUD consistency.
+ *
+ * Runtime Model:
+ * 1. Compute team score progression from objective ownership cadence.
+ * 2. Translate global scores to player-relative friendly/enemy values.
+ * 3. Update text labels and resize bar fill widgets accordingly.
+ *
+ * Notes:
+ * - This version emphasizes real-time readability of momentum, not rules changes.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 

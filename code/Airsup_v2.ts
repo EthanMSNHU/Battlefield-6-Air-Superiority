@@ -1,6 +1,19 @@
-﻿/**
+/**
  * Airsup_v2
  * Adds the first per-player HUD layer on top of the core Air Sup scoring and stat systems.
+ *
+ * Scope:
+ * - Preserves v1 scoring behavior while introducing HUD creation for active players.
+ * - Prevents duplicate HUD widget trees for the same player identity.
+ *
+ * Runtime Model:
+ * 1. Match setup resets HUD tracking and configures objectives/scoreboard.
+ * 2. Existing players are assigned HUD widgets during mode start.
+ * 3. Main loop updates team scoring + header totals every second.
+ * 4. Player event hooks keep row stats synchronized with gameplay.
+ *
+ * Notes:
+ * - This is the first bridge between scoreboard-only logic and on-screen HUD feedback.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 // -----------------------------------------------------------------------------
