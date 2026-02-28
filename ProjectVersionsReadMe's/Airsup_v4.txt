@@ -1,21 +1,37 @@
-﻿Airsup_v4.ts Explanation
+Airsup_v4.ts Explanation
 ========================
 
 Purpose
-- Major architecture stabilization for HUD score updates.
 
-Main Changes Over v3
-- Adds authoritative team score object:
-  - gameState.team1Score
-  - gameState.team2Score
-- Adds PlayerHud map keyed by player object ID to store widget names.
-- Stops relying on widget recreation; updates existing widgets with setters.
+  - Architectural stabilization pass for score synchronization and HUD updates.
 
-Core Flow
-- updateTeamScores mutates gameState + SetGameModeScore.
-- On score change: updates scoreboard header + all HUD score labels.
-- updateAllHudScores maps global team scores into player-relative friendly/enemy values.
+Major Functions And Why They Are Used
 
-Why It Matters
-- Prevents stacked/duplicate UI behavior.
-- Centralizes score truth for stable HUD/scoreboard sync.
+  - OnGameModeStarted()
+  Why: Resets both timers and authoritative score state at match start so no stale values leak between rounds.
+
+  - updateTeamScores()
+  Why: Main state mutator. It computes held objectives, advances timers, applies score updates, and gates expensive UI refresh work behind a score-changed check.
+
+  - updateScoreBoardHeader()
+  Why: Single function for header writes. This prevents inconsistent formatting and ensures both team headers come from the same source of truth.
+
+  - updateAllHudScores()
+  Why: Setter-based HUD refresh for every player. It maps global team scores into player-relative friendly/enemy display values.
+
+  - createHUD(player)
+  Why: Registers widget names in PlayerHud map so later updates can target existing widgets reliably.
+
+Why gameState Is Important
+
+  - It becomes the authoritative local score model.
+
+  - Scoreboard header and HUD consume the same values, eliminating race/desync behavior from mixed read sources.
+
+  - Future HUD features (bars/icons) can safely build on this foundation.
+
+Why This Version Matters
+
+  - First version where data flow is clearly authoritative and predictable.
+
+  - Converts HUD behavior from ad-hoc rendering to controlled state mutation.

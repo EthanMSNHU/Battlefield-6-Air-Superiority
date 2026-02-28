@@ -1,0 +1,71 @@
+Airsup_v7.ts Explanation
+========================
+
+Purpose
+
+  - Polish iteration on the full v6 feature set.
+
+  - Keeps full gameplay logic intact while improving objective HUD readability (plate contrast, layering, and letter visibility/alignment).
+
+Major Functions And Why They Are Used
+
+  - OnGameModeStarted()
+  Why: Central mode bootstrap. Resets authoritative score state, configures capture points, initializes scoreboard/HUD, and drives the 1-second loop for score/objective refresh.
+
+  - initializeAllCurrentPlayers()
+  Why: Handles players already in server when mode starts so they get full stat + HUD setup immediately.
+
+  - initializePlayerState(player)
+  Why: Consolidates per-player stat reset and HUD creation into one reliable entry point used by startup and join flows.
+
+  - setUpScoreBoard()
+  Why: Defines scoreboard schema (custom two-team, columns, widths) in one place for consistency and easy future tuning.
+
+  - updateScoreBoardHeader()
+  Why: Mirrors authoritative team score values to header labels so visible scoreboard totals always match internal state.
+
+  - getSecondsPerPoint(pointsHeld)
+  Why: Isolates ticket pacing rules (3->1s, 2->5s, 1->10s) as a balancing function instead of scattering timing logic.
+
+  - updateTeamScores()
+  Why: Core scoring authority. Reads objective ownership, advances timers, applies score increments, and triggers HUD/header refresh only when scores actually change.
+
+  - updateAllHudScores()
+  Why: Applies player-relative score mapping (friendly/enemy by team perspective), updates numeric labels, and resizes progression bars from the same authoritative values.
+
+  - createHUD(player)
+  Why: Builds the entire per-player HUD widget tree once and registers widget names in PlayerHud map for later setter-based updates.
+
+  - updateSingleObjectiveVisibility(...)
+  Why: Encapsulates objective-state rules for one objective stack, ensuring exactly one visual state is shown (neutral/friendly/enemy) from that player’s perspective.
+
+  - updateAllObjectiveIcons()
+  Why: Resolves current owners for A/B/C once per tick, then applies visibility state to every player HUD for synchronized objective visuals.
+
+  - OnPlayerJoinGame(player)
+  Why: Ensures late joiners immediately get stats + HUD + live sync (scores and objective icons) without waiting for the next major event.
+
+  - OnCapturePointCaptured(capturePoint)
+  Why: Handles capture rewards and forces immediate objective UI refresh after ownership change so visuals feel responsive.
+
+V7-Specific HUD Readability Focus
+
+  - Objective plates are intentionally more opaque than earlier versions for stronger silhouette readability.
+
+  - Inner neutral plate alpha is tuned for contrast against outer plate color.
+
+  - Letter rendering uses a front-pass approach and alignment tweaks to avoid clipping/occlusion.
+
+  - Position constants are used consistently so A/B/C remain symmetrical.
+
+System Design Notes
+
+  - Authoritative `gameState` remains the single score truth source.
+
+  - UI is created once and updated via setters/visibility toggles for runtime stability.
+
+  - Objective state rendering is perspective-correct (friendly/enemy depends on viewer team).
+
+Why This Version Matters
+
+  - It is the first version focused heavily on visual quality and in-match readability while preserving the stable gameplay architecture from v6.

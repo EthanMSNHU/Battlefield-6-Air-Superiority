@@ -4,7 +4,7 @@ Custom Battlefield Portal game mode focused on domination-style aerial objective
 
 ## Overview
 
-This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v6`) showing progression from core scoring logic to a full custom HUD with dynamic score bars and live objective ownership indicators.
+This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, and refined HUD visuals.
 
 ## Features
 
@@ -29,13 +29,14 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - `code/Airsup_v4.ts`: Stabilized HUD updates via authoritative state + setters
 - `code/Airsup_v5.ts`: Adds dynamic score bar fill updates
 - `code/Airsup_v6.ts`: Adds dynamic objective ownership icon states
+- `code/Airsup_v7.ts`: Refines HUD visuals (readability, layering, and objective marker polish)
 
 ## Project Structure
 
 ```text
 .
 |-- code/
-|   |-- Airsup_v1.ts ... Airsup_v6.ts
+|   |-- Airsup_v1.ts ... Airsup_v7.ts
 |   |-- Strings.json
 |   |-- tsconfig.json
 |   `-- (supporting framework/plugin files)
@@ -43,7 +44,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 |   |-- bundle.ts
 |   `-- bundle.strings.json
 |-- ProjectVersionsReadMe's/
-|   |-- Airsup_v1.txt ... Airsup_v6.txt
+|   |-- Airsup_v1.txt ... Airsup_v7.txt
 |   |-- Airsup_versions_compare.txt
 |   `-- AiReadMe_v4.txt
 |-- package.json
@@ -54,10 +55,10 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 
 `ProjectVersionsReadMe's/` contains version-focused documentation files:
 
-- `Airsup_v1.txt ... Airsup_v6.txt`
+- `Airsup_v1.txt ... Airsup_v7.txt`
   - Per-version explanations of major blocks, functions, and `mod.*` usage.
 - `Airsup_versions_compare.txt`
-  - Side-by-side progression summary from v1 through v6.
+  - Side-by-side progression summary from v1 through v7.
 - `AiReadMe_v4.txt`
   - Architecture notes and stability lessons captured during v4-era iteration.
 
@@ -77,7 +78,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 ## Ownership and Attribution
 
 - Original project files by Ethan Mills include:
-  - `code/Airsup_v1.ts` through `code/Airsup_v6.ts`
+  - `code/Airsup_v1.ts` through `code/Airsup_v7.ts`
   - project-specific documentation files in the repository root and `ProjectVersionsReadMe's/`
 - Supporting framework/template directories were sourced from:
   - `https://github.com/deluca-mike/bf6-portal-scripting-template`

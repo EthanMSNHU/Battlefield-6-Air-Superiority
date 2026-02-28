@@ -1,29 +1,242 @@
-﻿Airsup Version Comparison (v1 -> v6)
+Airsup Version Comparison (v1 -> v7)
 ===================================
 
-v1
-- Core domination scoring model + custom scoreboard stat tracking.
+Purpose Of This Comparison
 
-v2
-- Adds first custom HUD shell (score widgets + static bars).
+  - Show how Air Sup evolved from a rules-only prototype into a full, player-relative HUD system.
 
-v3
-- Adds objective placeholder visuals and A/B/C labels.
+  - Highlight the major architectural shifts, not every single code-level change.
 
-v4
-- Introduces authoritative score state and map-driven setter updates for stable HUD behavior.
+  - Explain why each version exists and when to reference it.
 
-v5
-- Adds dynamic bar fills tied to team score values.
+High-Level Evolution Summary
 
-v6
-- Adds live objective ownership UI states (neutral/friendly/enemy) per player perspective.
+  - v1-v3: Foundation and visual scaffolding.
 
-Architecture Progression
-- v1-v3: Gameplay-first, visual HUD expansion.
-- v4: Stability pivot (state + setters + widget map).
-- v5-v6: Feature-complete HUD feedback and objective-state visualization.
+  - v4: Architecture stabilization pivot (authoritative state + setter update pattern).
 
-Best Practical Baseline
-- Most complete file: Airsup_v6.ts
-- Simplest stable architecture reference: Airsup_v4.ts
+  - v5-v6: Feature completeness for score momentum + live objective ownership state.
+
+  - v7: Visual readability and layering polish on top of v6 stability.
+
+Version-by-Version Breakdown
+
+v1 (Gameplay Foundation)
+
+  - What changed:
+
+  - Implemented objective-based team ticket logic (3/2/1 points held => 1s/5s/10s scoring).
+
+  - Added custom scoreboard columns (score, kills, deaths, captures).
+
+  - Added core player event rewards and stat updates.
+
+  - Why it matters:
+
+  - Establishes the match rules and event economy.
+
+  - Defines the baseline data model all later versions depend on.
+
+  - Main strengths:
+
+  - Simple, predictable, easy to validate gameplay behavior.
+
+  - Main limitations:
+
+  - No custom HUD feedback beyond scoreboard.
+
+v2 (First HUD Integration)
+
+  - What changed:
+
+  - Added per-player HUD creation and player-unique widget naming.
+
+  - Added initial score visuals and static bar shells.
+
+  - Why it matters:
+
+  - First step from scoreboard-only feedback to in-match UI feedback.
+
+  - Introduces HUD lifecycle concerns (existing players + late joiners).
+
+  - Main strengths:
+
+  - Keeps gameplay stable while proving HUD bootstrapping works.
+
+  - Main limitations:
+
+  - HUD mostly static; limited runtime visual state changes.
+
+v3 (Objective HUD Layout Scaffolding)
+
+  - What changed:
+
+  - Added objective placeholders and A/B/C label presentation structure.
+
+  - Expanded HUD composition and layering layout.
+
+  - Why it matters:
+
+  - Builds the visual framework needed for later live objective-state logic.
+
+  - Main strengths:
+
+  - Clear objective HUD layout baseline.
+
+  - Main limitations:
+
+  - Objective visuals are mostly structural at this stage, not fully state-driven.
+
+v4 (Stability Pivot / Architecture Upgrade)
+
+  - What changed:
+
+  - Introduced authoritative local score state (`gameState`).
+
+  - Added player HUD map for widget-name-driven setter updates.
+
+  - Gated expensive UI refreshes behind score-change checks.
+
+  - Why it matters:
+
+  - This is the most important architecture shift in the project.
+
+  - Prevents desync/duplication patterns from ad-hoc UI handling.
+
+  - Main strengths:
+
+  - Reliable data flow and cleaner update responsibilities.
+
+  - Main limitations:
+
+  - Score text stable, but visual momentum still limited without dynamic fills.
+
+v5 (Dynamic Momentum Feedback)
+
+  - What changed:
+
+  - Added dynamic friendly/enemy bar fill widgets and resize logic.
+
+  - Tied bar width directly to team score values.
+
+  - Why it matters:
+
+  - Players can read momentum instantly without parsing numbers first.
+
+  - Main strengths:
+
+  - Stronger visual readability for match pacing.
+
+  - Main limitations:
+
+  - Objective ownership indicators still less expressive than full state stacks.
+
+v6 (Feature-Complete Gameplay HUD)
+
+  - What changed:
+
+  - Added live objective ownership state visuals for A/B/C (neutral/friendly/enemy).
+
+  - Added objective visibility controller functions and full per-player perspective mapping.
+
+  - Integrated objective icon refresh into main runtime loop and capture events.
+
+  - Why it matters:
+
+  - First version where scoreboard, bars, and objective ownership feedback all work together.
+
+  - Main strengths:
+
+  - Complete, responsive, player-relative HUD behavior.
+
+  - Main limitations:
+
+  - Visual readability can still vary by map/light layering conditions.
+
+v7 (Readability and Layering Polish)
+
+  - What changed:
+
+  - Iterative tuning of objective plates, inner-box contrast, alpha, and label layering.
+
+  - Added/adjusted front-pass letter rendering and alignment refinements.
+
+  - Preserved v6 gameplay logic while improving visual reliability.
+
+  - Why it matters:
+
+  - Focuses on practical in-match clarity, not new rule complexity.
+
+  - Main strengths:
+
+  - Better legibility and cleaner objective marker presentation.
+
+  - Main limitations:
+
+  - Primarily polish-focused; gameplay architecture remains same as v6.
+
+Cross-Version Architecture Progression
+
+  - Data authority progression:
+
+  - v1-v3: Functional but more direct reads/writes.
+
+  - v4+: Clear single score source (`gameState`) drives HUD + header consistency.
+
+  - HUD update strategy progression:
+
+  - v2-v3: Build-oriented.
+
+  - v4+: Create once, mutate with setters/visibility toggles.
+
+  - Objective visualization progression:
+
+  - v3: placeholders.
+
+  - v6: full live state logic.
+
+  - v7: readability/occlusion polish.
+
+Function Importance Across Versions
+
+  - Most critical long-term functions:
+
+  - OnGameModeStarted(): mode bootstrap and recurring update loop.
+
+  - updateTeamScores(): scoring authority and pacing heart.
+
+  - updateAllHudScores(): core score/bar presentation updater.
+
+  - createHUD(player): one-time widget tree constructor for stable runtime mutation.
+
+  - updateAllObjectiveIcons() + updateSingleObjectiveVisibility(...): objective-state visual correctness.
+
+  - Why these matter:
+
+  - Together, they separate responsibilities cleanly: gameplay state, UI construction, UI mutation, and event-driven synchronization.
+
+Recommended Reference Versions By Goal
+
+  - If you need the simplest gameplay rules baseline:
+
+  - Start with v1.
+
+  - If you need architecture pattern reference for stable HUD updates:
+
+  - Start with v4.
+
+  - If you need full gameplay + objective-state HUD behavior:
+
+  - Start with v6.
+
+  - If you need full behavior plus visual readability polish:
+
+  - Start with v7.
+
+Practical Conclusion
+
+  - v4 is the architectural turning point.
+
+  - v6 is the first truly complete functional target.
+
+  - v7 is the best practical presentation target when visual clarity matters in live play.

@@ -1,34 +1,46 @@
-﻿Airsup_v6.ts Explanation
+Airsup_v6.ts Explanation
 ========================
 
 Purpose
-- Most complete version: domination scoring + mirrored HUD + dynamic bars + live objective ownership states.
 
-Main Changes Over v5
-- PlayerHud map expanded with objective state widgets for A/B/C:
-  - Neutral
-  - Friendly
-  - Enemy
-- Adds objective visibility controller:
-  - updateSingleObjectiveVisibility(...)
-- Adds global objective refresh:
-  - updateAllObjectiveIcons()
+  - Full-feature Air Sup HUD: mirrored scores, dynamic bars, and live objective ownership states.
 
-Core Runtime Loop
-- Every second:
+Major Functions And Why They Are Used
+
+  - OnGameModeStarted()
+  Why: Complete mode bootstrap. It resets authoritative state, configures objectives, initializes scoreboard/HUD baseline, and runs continuous score + objective updates.
+
+  - initializeAllCurrentPlayers()
+  Why: Batch-initializes players already in match at mode start so no one misses HUD/stat setup.
+
+  - initializePlayerState(player)
+  Why: Single entry point for per-player stat reset + HUD creation. Reduces duplicate setup code across startup/join flows.
+
   - updateTeamScores()
+  Why: Continues as scoring authority and triggers downstream UI updates only when necessary.
+
+  - updateAllHudScores()
+  Why: Updates player-relative text and bar visuals from authoritative score values.
+
+  - updateSingleObjectiveVisibility(...)
+  Why: Encapsulates objective-state decision logic for one objective stack (neutral/friendly/enemy), ensuring exactly one visual state is active.
+
   - updateAllObjectiveIcons()
+  Why: Reads live ownership once per objective and applies visibility updates for all players, keeping objective indicators synchronized in real time.
 
-Objective State Logic
-- Each objective has three overlapping state widgets.
-- All three are hidden, then one is shown based on:
-  - objective owner
-  - viewing player's team
-- Neutral shown when owner is neither team 1 nor team 2.
+  - OnCapturePointCaptured(capturePoint)
+  Why: Awards capture rewards and immediately refreshes objective visuals after ownership changes.
 
-Player Lifecycle
-- On join: initializes stats, creates HUD, updates scores, updates objective icons.
-- On capture: rewards players and refreshes objective icons.
+Objective-State Design Rationale
 
-Result
-- Full player-relative HUD behavior for both scoring and objective control state.
+  - Each objective uses overlapping widgets for neutral/friendly/enemy states.
+
+  - Runtime toggles visibility instead of rebuilding widgets, which is cheaper and less error-prone.
+
+  - Team-relative mapping ensures the same objective can appear friendly to one player and enemy to another.
+
+Why This Version Matters
+
+  - Represents the first complete gameplay + HUD readability package.
+
+  - Combines stable authoritative scoring with player-perspective objective awareness.

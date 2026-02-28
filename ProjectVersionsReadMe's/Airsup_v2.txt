@@ -1,21 +1,31 @@
-﻿Airsup_v2.ts Explanation
+Airsup_v2.ts Explanation
 ========================
 
 Purpose
-- Keeps v1 gameplay logic and adds first custom HUD layer.
 
-Main Additions Over v1
-- Per-player HUD creation with root container and score widgets.
-- Static left/right bar backplates (visual only).
-- HUD creation on mode start for existing players and on player join.
+  - Keeps v1 scoring/stat behavior and introduces first custom HUD pass.
 
-Functions Added/Expanded
-- createHUD(player): builds HUD once per player using unique names from player object ID.
+Major Functions And Why They Are Used
 
-What Remains Same as v1
-- Capture-point scoring model and scoreboard stat events.
-- Player stat variable model and row updates.
+  - OnGameModeStarted()
+  Why: Still owns objective + scoreboard setup, but now also initializes HUD for players already in match. This prevents "no HUD until respawn/rejoin" issues.
 
-Key mod API Additions
-- AddUIContainer, AddUIText, GetUIRoot, FindUIWidgetWithName.
-- UI layout/style types: UIAnchor, UIBgFill, CreateVector.
+  - createHUD(player)
+  Why: Dedicated HUD constructor for one player. It builds the UI tree once and uses unique widget names per player ID to avoid collisions between players.
+
+  - OnPlayerJoinGame(player)
+  Why: Ensures late-join players receive stat initialization and HUD setup immediately, matching existing players.
+
+  - updateTeamScores()
+  Why: Unchanged scoring core, retained to preserve stable gameplay while HUD features are introduced incrementally.
+
+  - updatePlayerScoreBoard(player)
+  Why: Keeps row stats authoritative as in v1, regardless of new HUD visuals.
+
+Why This Version Matters
+
+  - Introduces the "create once, update later" HUD direction.
+
+  - Adds per-player HUD lifecycle management without destabilizing match scoring.
+
+  - Serves as bridge between scoreboard-only gameplay and fully dynamic HUD versions.

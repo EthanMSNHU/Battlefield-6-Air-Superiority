@@ -1,33 +1,39 @@
-﻿Airsup_v1.ts Explanation
+Airsup_v1.ts Explanation
 ========================
 
 Purpose
-- Baseline domination-style Air Superiority logic.
-- Handles capture-point scoring, team scoreboard headers, and player stat tracking.
 
-Main Blocks
-- Game state variables: player stat slots and team score timers.
-- OnGameModeStarted: configures 3 capture points (100/101/102), initializes scoreboard, runs 1-second game loop.
-- Scoreboard functions: set custom 2-team columns and update header scores.
-- Team scoring: awards team score by objectives held (3->1s, 2->5s, 1->10s).
-- Player events: join/kill/death/capture updates for scoreboard row stats.
+  - Baseline Air Superiority ruleset.
 
-Functions
-- OnGameModeStarted(): mode setup + main loop.
-- updateScoreBoardTotal(): updates header from current team scores.
-- setUpScoreBoard(): sets scoreboard type/labels/widths.
-- getSecondsPerPoint(pointsHeld): interval lookup by objectives held.
-- updateTeamScores(): objective ownership count + timed score updates.
-- OnPlayerJoinGame(player): initialize player stat vars.
-- updatePlayerScoreBoard(player): writes score/kills/deaths/captures row values.
-- OnPlayerEarnKill(player): +1 kill, +100 score.
-- OnPlayerDied(player): +1 death.
-- OnCapturePointCaptured(point): +1 capture, +200 score for players on owning team.
+  - Establishes objective-based ticket flow and per-player custom scoreboard stats.
 
-Key mod API Usage
-- Objective setup: GetCapturePoint, EnableGameModeObjective, SetCapturePointCapturingTime, SetCapturePointNeutralizationTime, SetMaxCaptureMultiplier.
-- Team/score: GetTeam, GetGameModeScore, SetGameModeScore, Equals.
-- Loop/time: GetMatchTimeRemaining, Wait.
-- Scoreboard: SetScoreboardType, SetScoreboardHeader, SetScoreboardColumnNames, SetScoreboardColumnWidths, SetScoreboardPlayerValues.
-- Player vars: ObjectVariable, GetVariable, SetVariable, Add.
-- Arrays/players: CountOf, ValueInArray, GetPlayersOnPoint.
+Major Functions And Why They Are Used
+
+  - OnGameModeStarted()
+  Why: This is the mode bootstrap and control loop. It configures capture points, initializes score, sets scoreboard layout, and runs the 1-second update cycle that keeps match logic alive.
+
+  - setUpScoreBoard()
+  Why: Centralizes scoreboard schema setup (type, columns, widths). Keeping this separate avoids repeating UI config and makes later versions easier to evolve.
+
+  - updateScoreBoardTotal()
+  Why: Syncs visible team header values with current game-mode scores so players always see accurate team ticket progress.
+
+  - getSecondsPerPoint(pointsHeld)
+  Why: Encodes pacing rules in one place (3->1s, 2->5s, 1->10s). This isolates balancing knobs so scoring speed can be tuned without touching core flow.
+
+  - updateTeamScores()
+  Why: Core scoring engine. It reads objective ownership, advances per-team timers, applies score increments at the correct cadence, and drives scoreboard freshness.
+
+  - updatePlayerScoreBoard(player)
+  Why: Single writer for player row values. This avoids stat desync by ensuring all events call one shared scoreboard update path.
+
+  - OnPlayerEarnKill / OnPlayerDied / OnCapturePointCaptured
+  Why: Event handlers that apply stat rewards/penalties at the moment gameplay events occur, then immediately refresh that player row.
+
+System Design Notes
+
+  - Team scoring uses elapsed-time timers per team instead of instant point bursts; this creates a steady domination feel.
+
+  - Player stats are stored in fixed object-variable slots, which keeps writes lightweight and predictable.
+
+  - This version is rules-first and intentionally simple before any HUD-heavy complexity.

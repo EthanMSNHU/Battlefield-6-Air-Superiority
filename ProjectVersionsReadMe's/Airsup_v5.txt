@@ -1,19 +1,34 @@
-﻿Airsup_v5.ts Explanation
+Airsup_v5.ts Explanation
 ========================
 
 Purpose
-- Adds dynamic score bar fill behavior to stabilized v4 HUD system.
 
-Main Changes Over v4
-- PlayerHud map now includes bar fill widget names.
-- updateAllHudScores now updates:
-  - Score label text
-  - Bar fill size (friendly/enemy)
+  - Adds dynamic score bars on top of v4 stable score architecture.
 
-Bar Logic
-- Uses MAX_SCORE and MAX_BAR_WIDTH to scale fill widths.
-- Friendly side uses positive width growth.
-- Enemy side uses negative width growth to mirror direction.
+Major Functions And Why They Are Used
 
-Result
-- HUD now has both dynamic numeric scores and dynamic visual progression bars.
+  - updateAllHudScores()
+  Why: Becomes dual-purpose: updates score text and recalculates bar fill sizes each refresh. It is the key visual feedback function in this version.
+
+  - createHUD(player)
+  Why: Adds dedicated bar fill widgets (friendly/enemy) and stores names in PlayerHud for fast resize operations.
+
+  - updateTeamScores()
+  Why: Still owns when score changes happen; bars intentionally react only when score changes to avoid unnecessary UI churn.
+
+  - getSecondsPerPoint(pointsHeld)
+  Why: Preserves ticket pacing model, keeping gameplay balance consistent while visual fidelity increases.
+
+Bar System Design
+
+  - MAX_SCORE + MAX_BAR_WIDTH normalize bar growth.
+
+  - Friendly side grows positive direction.
+
+  - Enemy side uses mirrored growth (negative width) to keep center-aligned visual symmetry.
+
+Why This Version Matters
+
+  - Introduces an at-a-glance momentum indicator without changing scoring rules.
+
+  - Demonstrates how visual systems can layer onto stable authoritative state.
