@@ -13,6 +13,12 @@
  *
  * Notes:
  * - This version is visual-quality focused and intended for rapid in-match tuning.
+ *
+ * Team Switcher Attribution:
+ * - Team switch UI interaction/template approach adapted from:
+ *   https://github.com/The0zzy/BF6-Portal-TeamSwitchUI
+ * - Original TeamSwitchUI copyright remains with its upstream author(s).
+ * - Airsup v7 integration/customization copyright (c) 2026 Ethan Mills.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 
@@ -52,12 +58,26 @@ interface PlayerTeamSwitchUi {
 
 const playerTeamSwitchUiMap: Map<number, PlayerTeamSwitchUi> = new Map();
 
-// TWL-style interact multi-click detector.
+/**
+ * Interact multi-click detector used by the team-switch UI.
+ *
+ * Why this exists:
+ * - Portal input callbacks can vary by runtime/context.
+ * - Polling interact edge transitions in `OngoingPlayer` gives a resilient fallback.
+ *
+ * Behavior:
+ * - Tracks only rising edges of `IsInteracting`.
+ * - Counts presses inside a fixed time window.
+ * - Returns `true` exactly on the 3rd press, then resets sequence state.
+ */
 class InteractMultiClickDetector {
     private static readonly STATES: Record<number, { lastIsInteracting: boolean; clickCount: number; sequenceStartTime: number }> = {};
     private static readonly WINDOW_MS = 2000;
     private static readonly REQUIRED_CLICKS = 3;
 
+    /**
+     * Returns true when the player has pressed Interact three times within window.
+     */
     public static checkMultiClick(player: mod.Player): boolean {
         const playerId = mod.GetObjId(player);
         const isInteracting = mod.GetSoldierState(player, mod.SoldierStateBool.IsInteracting);
@@ -142,6 +162,15 @@ let playerHudMap: Map<number, PlayerHud> = new Map();
 // -----------------------------------------------------------------------------
 // INITIALIZE GAME MODE
 // -----------------------------------------------------------------------------
+/**
+ * Mode bootstrap and main runtime loop.
+ *
+ * Responsibilities:
+ * - Reset all authoritative mode state.
+ * - Configure capture points and baseline objective rules.
+ * - Build scoreboard + initialize all current players.
+ * - Run a 1-second tick for score updates and objective icon synchronization.
+ */
 export async function OnGameModeStarted() {
 
     // Reset timers and authoritative score state at match start.
@@ -188,6 +217,10 @@ export async function OnGameModeStarted() {
     }
 }
 
+/**
+ * Initializes every player already in the server at mode start.
+ * This prevents "late init" problems where existing players miss HUD/state setup.
+ */
 function initializeAllCurrentPlayers(){
     // Ensure players already present when the mode starts are initialized.
     const players = mod.AllPlayers();
@@ -210,6 +243,10 @@ function initializeAllCurrentPlayers(){
 // -----------------------------------------------------------------------------
 // SCOREBOARD
 // -----------------------------------------------------------------------------
+/**
+ * Configures scoreboard type/schema for this mode.
+ * Column order: Score, Kills, Deaths, Captures.
+ */
 function setUpScoreBoard(){
     // Define custom scoreboard type, labels, and column widths.
     mod.SetScoreboardType(mod.ScoreboardType.CustomTwoTeams);
@@ -223,6 +260,9 @@ function setUpScoreBoard(){
     mod.SetScoreboardColumnWidths(10,10,10,10);
 }
 
+/**
+ * Mirrors authoritative team score values into scoreboard team headers.
+ */
 function updateScoreBoardHeader(){
     // Mirror authoritative score values into the scoreboard header.
     mod.SetScoreboardHeader(
@@ -238,6 +278,10 @@ function updateScoreBoardHeader(){
 // -----------------------------------------------------------------------------
 // TEAM SCORING
 // -----------------------------------------------------------------------------
+/**
+ * Returns score cadence in seconds based on objectives held.
+ * Higher map control yields faster score income.
+ */
 function getSecondsPerPoint(pointsHeld: number): number{
     // Ticket gain speed based on how many objectives a team owns.
     if (pointsHeld === 3) return 1;
@@ -246,6 +290,16 @@ function getSecondsPerPoint(pointsHeld: number): number{
     return 0;
 }
 
+/**
+ * Core ticket-scoring authority.
+ *
+ * Flow:
+ * 1) Resolve objective ownership counts for both teams.
+ * 2) Advance per-team timers once per outer loop tick.
+ * 3) Convert ownership to score interval via `getSecondsPerPoint`.
+ * 4) Award score when timer reaches interval.
+ * 5) Refresh HUD/header only if score changed.
+ */
 function updateTeamScores(){
 
     // Count ownership across A/B/C for each team.
@@ -305,6 +359,13 @@ function updateTeamScores(){
 // -----------------------------------------------------------------------------
 // HUD UPDATE (SETTERS ONLY)
 // -----------------------------------------------------------------------------
+/**
+ * Updates per-player score labels and score bars.
+ *
+ * Key design:
+ * - Uses team-relative mapping so each player sees friendly left / enemy right.
+ * - Only mutates already-created widgets (no runtime widget creation here).
+ */
 function updateAllHudScores(){
 
     // Update each player's left/right score labels and bar fill sizes.
@@ -392,6 +453,12 @@ function updateAllHudScores(){
 // -----------------------------------------------------------------------------
 // HUD CREATION (CREATE ONCE)
 // -----------------------------------------------------------------------------
+/**
+ * One-time HUD builder for a specific player.
+ *
+ * This function creates all static widgets (scores, bars, objective stacks, labels),
+ * then stores widget-name references in `playerHudMap` for fast setter updates later.
+ */
 function createHUD(player: mod.Player){
 
     // Use object id for unique per-player widget names.
@@ -1149,6 +1216,16 @@ mod.AddUIText(
 // -----------------------------------------------------------------------------
 // TEAM SWITCH UI
 // -----------------------------------------------------------------------------
+// Team switch UI interaction/template approach adapted from:
+// https://github.com/The0zzy/BF6-Portal-TeamSwitchUI
+// Original Airsup integration/customization copyright (c) 2026 Ethan Mills.
+/**
+ * Builds per-player team-switch panel and input hint.
+ *
+ * Important:
+ * - Widgets are created once and then shown/hidden.
+ * - Button events are enabled for both ButtonDown and ButtonUp for robust click capture.
+ */
 function createTeamSwitchUi(player: mod.Player) {
     const id = mod.GetObjId(player);
     if (playerTeamSwitchUiMap.has(id)) return;
@@ -1386,6 +1463,12 @@ function createTeamSwitchUi(player: mod.Player) {
     updateTeamSwitchButtonState(player);
 }
 
+/**
+ * Utility for robust UI click routing.
+ *
+ * Some UI events can originate from child widgets (e.g., border/label).
+ * This checks current widget and parents up to `maxDepth` for expected base names.
+ */
 function widgetOrAncestorMatchesName(
     startWidget: mod.UIWidget,
     expectedNames: string[],
@@ -1405,6 +1488,16 @@ function widgetOrAncestorMatchesName(
     return false;
 }
 
+/**
+ * Toggles team-switch panel visibility and synchronizes input mode.
+ *
+ * When visible:
+ * - Enables UI input mode (cursor interactions).
+ * - Ensures buttons are enabled and state is refreshed.
+ *
+ * When hidden:
+ * - Disables UI input mode and returns control to gameplay.
+ */
 function setTeamSwitchPanelVisible(player: mod.Player, visible: boolean) {
     const id = mod.GetObjId(player);
     const ui = playerTeamSwitchUiMap.get(id);
@@ -1441,6 +1534,10 @@ function setTeamSwitchPanelVisible(player: mod.Player, visible: boolean) {
     }
 }
 
+/**
+ * Legacy/local triple-tap counter tied to interact point callback path.
+ * Opens/closes panel when 3 taps occur inside configured window.
+ */
 function processInteractTap(player: mod.Player) {
     const id = mod.GetObjId(player);
     const ui = playerTeamSwitchUiMap.get(id);
@@ -1461,6 +1558,11 @@ function processInteractTap(player: mod.Player) {
     }
 }
 
+/**
+ * Deployment heuristic.
+ * Portal type set here does not expose a direct "is deployed" API, so soldier states
+ * are used to infer whether interact point management should be active.
+ */
 function isPlayerLikelyDeployed(player: mod.Player): boolean {
     return (
         mod.GetSoldierState(player, mod.SoldierStateBool.IsAlive) ||
@@ -1469,6 +1571,10 @@ function isPlayerLikelyDeployed(player: mod.Player): boolean {
     );
 }
 
+/**
+ * Spawns and enables a per-player interact point in front of the player (once).
+ * Interact point is used as one of the team-switch trigger paths.
+ */
 function ensureTeamSwitchInteractPoint(player: mod.Player) {
     if (!player || !mod.IsPlayerValid(player)) return;
     if (!isPlayerLikelyDeployed(player)) return;
@@ -1497,6 +1603,9 @@ function ensureTeamSwitchInteractPoint(player: mod.Player) {
     ui.interactPoint = interactPoint;
 }
 
+/**
+ * Best-effort cleanup of a player's interact point object.
+ */
 function removeTeamSwitchInteractPoint(playerOrId: mod.Player | number) {
     const id = mod.IsType(playerOrId, mod.Types.Player)
         ? mod.GetObjId(playerOrId as mod.Player)
@@ -1514,6 +1623,10 @@ function removeTeamSwitchInteractPoint(playerOrId: mod.Player | number) {
     ui.interactPoint = null;
 }
 
+/**
+ * Keeps team-switch buttons enabled/ready.
+ * (This mode currently leaves both team buttons enabled by design.)
+ */
 function updateTeamSwitchButtonState(player: mod.Player) {
     const id = mod.GetObjId(player);
     const ui = playerTeamSwitchUiMap.get(id);
@@ -1527,6 +1640,10 @@ function updateTeamSwitchButtonState(player: mod.Player) {
     mod.SetUIButtonEnabled(t2Button, true);
 }
 
+/**
+ * Forces return to deploy screen after team switch.
+ * Double-call with short delay improves reliability across timing edges.
+ */
 async function forceUndeployPlayer(player: mod.Player): Promise<void> {
     if (!player || !mod.IsPlayerValid(player)) return;
     mod.UndeployPlayer(player);
@@ -1534,6 +1651,16 @@ async function forceUndeployPlayer(player: mod.Player): Promise<void> {
     if (!player || !mod.IsPlayerValid(player)) return;
     mod.UndeployPlayer(player);
 }
+/**
+ * Objective icon state machine for one objective stack (A/B/C) from one player's POV.
+ *
+ * States:
+ * - Neutral: shows neutral outer + neutral inner.
+ * - Friendly: shows friendly outer + friendly inner.
+ * - Enemy: shows enemy outer + enemy inner.
+ *
+ * The hard reset first guarantees mutually-exclusive visual states each tick.
+ */
 function updateSingleObjectiveVisibility(
     playerTeam: mod.Team,
     ownerTeam: mod.Team,
@@ -1583,6 +1710,10 @@ function updateSingleObjectiveVisibility(
     }
 }
 
+/**
+ * Batch objective icon refresh for all players.
+ * Resolves current owners once, then applies per-player perspective mapping.
+ */
 function updateAllObjectiveIcons(){
 
     // Refresh A/B/C objective ownership visuals for every active player HUD.
@@ -1644,6 +1775,9 @@ function updateAllObjectiveIcons(){
 // -----------------------------------------------------------------------------
 // PLAYER EVENTS
 // -----------------------------------------------------------------------------
+/**
+ * Join hook: initialize player and immediately sync HUD/objective visuals.
+ */
 export function OnPlayerJoinGame(player: mod.Player){
     initializePlayerState(player);
     // Force immediate sync so late-join players see correct score/objective states instantly.
@@ -1651,6 +1785,9 @@ export function OnPlayerJoinGame(player: mod.Player){
     updateAllObjectiveIcons();
 }
 
+/**
+ * Per-player initialization entry point used by startup and join flow.
+ */
 function initializePlayerState(player: mod.Player){
     // Initialize per-player stat variables when they join.
     mod.SetVariable(mod.ObjectVariable(player, playerKills), 0);
@@ -1664,6 +1801,9 @@ function initializePlayerState(player: mod.Player){
     ensureTeamSwitchInteractPoint(player);
 }
 
+/**
+ * Writes tracked custom stats into this player's scoreboard row.
+ */
 function updatePlayerScoreBoard(player: mod.Player){
     // Push current custom stats into the player's scoreboard row.
     mod.SetScoreboardPlayerValues(
@@ -1675,13 +1815,19 @@ function updatePlayerScoreBoard(player: mod.Player){
     );
 }
 
+/**
+ * Kill event pathway (primary when event is available in this runtime).
+ */
 export function OnPlayerEarnKill(player: mod.Player){
-    // Reward kill and score, then refresh the row.
     awardKillAndScore(player);
 }
 
+/**
+ * Death event pathway.
+ * - Always increments death for the victim.
+ * - Optionally awards kill if killer is provided by runtime.
+ */
 export function OnPlayerDied(player: mod.Player, killer?: mod.Player){
-    // Track deaths and refresh the row.
     mod.SetVariable(mod.ObjectVariable(player, playerDeaths),
         mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerDeaths)),1));
     updatePlayerScoreBoard(player);
@@ -1692,6 +1838,10 @@ export function OnPlayerDied(player: mod.Player, killer?: mod.Player){
     }
 }
 
+/**
+ * Centralized kill credit helper.
+ * Consolidating this logic reduces divergence between kill/death event pathways.
+ */
 function awardKillAndScore(player: mod.Player){
     if (!player || !mod.IsPlayerValid(player)) return;
 
@@ -1702,6 +1852,10 @@ function awardKillAndScore(player: mod.Player){
     updatePlayerScoreBoard(player);
 }
 
+/**
+ * Capture event reward pipeline.
+ * Awards captures/score to valid point owners and refreshes objective icon state.
+ */
 export function OnCapturePointCaptured(capturePoint: mod.CapturePoint){
 
     // Reward players on the captured point and refresh objective ownership widgets.
@@ -1733,6 +1887,8 @@ export function OnPlayerUIButtonEvent(
     eventUIWidget: mod.UIWidget,
     eventUIButtonEvent: mod.UIButtonEvent
 ) {
+    // Accept both edge events but apply actions on ButtonUp only.
+    // This avoids accidental double-actions from press+release pairs.
     const isButtonUp = mod.Equals(eventUIButtonEvent, mod.UIButtonEvent.ButtonUp);
     const isButtonDown = mod.Equals(eventUIButtonEvent, mod.UIButtonEvent.ButtonDown);
     if (!isButtonUp && !isButtonDown) return;
@@ -1746,6 +1902,7 @@ export function OnPlayerUIButtonEvent(
     const t2Button = mod.FindUIWidgetWithName(ui.team2ButtonName);
     const closeButton = mod.FindUIWidgetWithName(ui.closeButtonName);
 
+    // Resolve click target robustly: exact button, text, or descendant path.
     const isCloseClick =
         clickedName === ui.closeButtonName ||
         clickedName === ui.closeTextName ||
@@ -1785,10 +1942,21 @@ export function OnPlayerUIButtonEvent(
     }
 }
 
+/**
+ * Team switch callback used to keep UI button state in sync with actual team.
+ */
 export function OnPlayerSwitchTeam(eventPlayer: mod.Player, eventTeam: mod.Team) {
     updateTeamSwitchButtonState(eventPlayer);
 }
 
+/**
+ * Per-player tick hook.
+ *
+ * Responsibilities:
+ * - Triple-tap interact detection for opening/closing team-switch panel.
+ * - Safety auto-close timeout to prevent stuck UI input mode.
+ * - Interact point lifecycle management based on deploy state.
+ */
 export function OngoingPlayer(eventPlayer: mod.Player) {
     if (!eventPlayer || !mod.IsPlayerValid(eventPlayer)) return;
 
@@ -1813,6 +1981,9 @@ export function OngoingPlayer(eventPlayer: mod.Player) {
     }
 }
 
+/**
+ * Interact point callback path for triple-tap handling.
+ */
 export function OnPlayerInteract(eventPlayer: mod.Player, eventInteractPoint: mod.InteractPoint) {
     const id = mod.GetObjId(eventPlayer);
     const ui = playerTeamSwitchUiMap.get(id);

@@ -85,6 +85,8 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
   - project-specific documentation files in the repository root and `ProjectVersionsReadMe's/`
 - Supporting framework/template directories were sourced from:
   - `https://github.com/deluca-mike/bf6-portal-scripting-template`
+- Team switch UI approach/templates were adapted from:
+  - `https://github.com/The0zzy/BF6-Portal-TeamSwitchUI`
 - See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for the full attribution and directory-level mapping.
 
 ## License / Copyright

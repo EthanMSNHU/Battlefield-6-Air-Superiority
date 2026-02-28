@@ -7,6 +7,7 @@ This repository contains both original project files and third-party template/fr
 The following directories and supporting files were sourced from:
 
 - https://github.com/deluca-mike/bf6-portal-scripting-template
+- https://github.com/The0zzy/BF6-Portal-TeamSwitchUI (team switch UI interaction/template approach)
 
 ## Directory-Level Attribution
 
@@ -28,6 +29,13 @@ Additional supporting files typically included with the template/tooling:
 - `code/tsconfig.json`
 - `package.json`
 - `package-lock.json`
+
+Team switch UI integration in project scripts was adapted from the TeamSwitchUI reference implementation:
+
+- `code/Airsup_v1_1.ts`
+- `code/TeamSwapper.ts`
+- `code/Airsup_v7.ts`
+- `code/Airsup_v7 copy.ts`
 
 ## Original Project Files
 
