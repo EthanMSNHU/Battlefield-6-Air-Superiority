@@ -15,11 +15,11 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
   - Captures
 - Domination-style objective control scoring model:
   - 3 objectives held: score every 1 second
-  - 2 objectives held: score every 5 seconds
-  - 1 objective held: score every 10 seconds
+  - 2 objectives held: score every 3 seconds
+  - 1 objective held: score every 6 seconds
 - Per-player mirrored HUD perspective (friendly vs enemy)
 - Dynamic team score bars (later versions)
-- Objective state widgets (neutral/friendly/enemy in latest version)
+- Objective state widgets (neutral/friendly/enemy in the latest version)
 - Triple-tap Interact (`E`) team-switch panel with Team 1/Team 2/Close controls
 - Layered objective icon styling (outer/inner plates) for neutral, friendly, and enemy states
 
