@@ -25,12 +25,75 @@ const playerScore = 2;
 const playerCaptures = 3;
 let team1ScoreTimer = 0;
 let team2ScoreTimer = 0;
+const TRIPLE_TAP_WINDOW_SECONDS = 1.25;
 // Authoritative state
 // Local source of truth for team scores; scoreboard and HUD derive from this object.
 let gameState = {
     team1Score: 0,
     team2Score: 0
 };
+
+interface PlayerTeamSwitchUi {
+    hintTextName: string;
+    panelName: string;
+    panelLabelName: string;
+    team1ButtonName: string;
+    team2ButtonName: string;
+    closeButtonName: string;
+    team1TextName: string;
+    team2TextName: string;
+    closeTextName: string;
+    panelVisible: boolean;
+    tapCount: number;
+    lastTapTime: number;
+    interactPoint: mod.InteractPoint | null;
+    panelOpenedAt: number;
+}
+
+const playerTeamSwitchUiMap: Map<number, PlayerTeamSwitchUi> = new Map();
+
+// TWL-style interact multi-click detector.
+class InteractMultiClickDetector {
+    private static readonly STATES: Record<number, { lastIsInteracting: boolean; clickCount: number; sequenceStartTime: number }> = {};
+    private static readonly WINDOW_MS = 2000;
+    private static readonly REQUIRED_CLICKS = 3;
+
+    public static checkMultiClick(player: mod.Player): boolean {
+        const playerId = mod.GetObjId(player);
+        const isInteracting = mod.GetSoldierState(player, mod.SoldierStateBool.IsInteracting);
+
+        let state = this.STATES[playerId];
+        if (!state) {
+            this.STATES[playerId] = state = {
+                lastIsInteracting: isInteracting,
+                clickCount: 0,
+                sequenceStartTime: 0
+            };
+        }
+
+        if (isInteracting === state.lastIsInteracting) return false;
+        state.lastIsInteracting = isInteracting;
+
+        if (!isInteracting) return false;
+
+        const now = Date.now();
+
+        if (state.clickCount > 0 && now - state.sequenceStartTime > this.WINDOW_MS) {
+            state.clickCount = 0;
+        }
+
+        if (state.clickCount === 0) {
+            state.sequenceStartTime = now;
+            state.clickCount = 1;
+            return false;
+        }
+
+        if (++state.clickCount !== this.REQUIRED_CLICKS) return false;
+
+        state.clickCount = 0;
+        return true;
+    }
+}
 
 
 
@@ -49,19 +112,25 @@ interface PlayerHud {
     objA_Neutral: string;
     objA_NeutralInner: string;
     objA_Friendly: string;
+    objA_FriendlyInner: string;
     objA_Enemy: string;
+    objA_EnemyInner: string;
 
     // Objective B state widgets.
     objB_Neutral: string;
     objB_NeutralInner: string;
     objB_Friendly: string;
+    objB_FriendlyInner: string;
     objB_Enemy: string;
+    objB_EnemyInner: string;
 
     // Objective C state widgets.
     objC_Neutral: string;
     objC_NeutralInner: string;
     objC_Friendly: string;
+    objC_FriendlyInner: string;
     objC_Enemy: string;
+    objC_EnemyInner: string;
 }
 
 let playerHudMap: Map<number, PlayerHud> = new Map();
@@ -78,6 +147,7 @@ export async function OnGameModeStarted() {
     // Reset timers and authoritative score state at match start.
     team1ScoreTimer = 0;
     team2ScoreTimer = 0;
+    playerTeamSwitchUiMap.clear();
 
     gameState.team1Score = 0;
     gameState.team2Score = 0;
@@ -91,12 +161,12 @@ export async function OnGameModeStarted() {
     mod.EnableGameModeObjective(capturePointB, true);
     mod.EnableGameModeObjective(capturePointC, true);
 
-    mod.SetCapturePointCapturingTime(capturePointA,2.5);
-    mod.SetCapturePointNeutralizationTime(capturePointA,2.5);
-    mod.SetCapturePointCapturingTime(capturePointB,2.5);
-    mod.SetCapturePointNeutralizationTime(capturePointB,2.5);
-    mod.SetCapturePointCapturingTime(capturePointC,2.5);
-    mod.SetCapturePointNeutralizationTime(capturePointC,2.5);
+    mod.SetCapturePointCapturingTime(capturePointA,3);
+    mod.SetCapturePointNeutralizationTime(capturePointA,3);
+    mod.SetCapturePointCapturingTime(capturePointB,3);
+    mod.SetCapturePointNeutralizationTime(capturePointB,3);
+    mod.SetCapturePointCapturingTime(capturePointC,3);
+    mod.SetCapturePointNeutralizationTime(capturePointC,3);
 
     mod.SetMaxCaptureMultiplier(capturePointA, 1);
     mod.SetMaxCaptureMultiplier(capturePointB, 1);
@@ -171,8 +241,8 @@ function updateScoreBoardHeader(){
 function getSecondsPerPoint(pointsHeld: number): number{
     // Ticket gain speed based on how many objectives a team owns.
     if (pointsHeld === 3) return 1;
-    if (pointsHeld === 2) return 5;
-    if (pointsHeld === 1) return 10;
+    if (pointsHeld === 2) return 3;
+    if (pointsHeld === 1) return 6;
     return 0;
 }
 
@@ -342,17 +412,23 @@ function createHUD(player: mod.Player){
     const objA_Neutral = "HUD_OBJ_A_NEUTRAL_" + id;
     const objA_NeutralInner = "HUD_OBJ_A_NEUTRAL_INNER_" + id;
     const objA_Friendly = "HUD_OBJ_A_FRIENDLY_" + id;
+    const objA_FriendlyInner = "HUD_OBJ_A_FRIENDLY_INNER_" + id;
     const objA_Enemy = "HUD_OBJ_A_ENEMY_" + id;
+    const objA_EnemyInner = "HUD_OBJ_A_ENEMY_INNER_" + id;
 
     const objB_Neutral = "HUD_OBJ_B_NEUTRAL_" + id;
     const objB_NeutralInner = "HUD_OBJ_B_NEUTRAL_INNER_" + id;
     const objB_Friendly = "HUD_OBJ_B_FRIENDLY_" + id;
+    const objB_FriendlyInner = "HUD_OBJ_B_FRIENDLY_INNER_" + id;
     const objB_Enemy = "HUD_OBJ_B_ENEMY_" + id;
+    const objB_EnemyInner = "HUD_OBJ_B_ENEMY_INNER_" + id;
 
     const objC_Neutral = "HUD_OBJ_C_NEUTRAL_" + id;
     const objC_NeutralInner = "HUD_OBJ_C_NEUTRAL_INNER_" + id;
     const objC_Friendly = "HUD_OBJ_C_FRIENDLY_" + id;
+    const objC_FriendlyInner = "HUD_OBJ_C_FRIENDLY_INNER_" + id;
     const objC_Enemy = "HUD_OBJ_C_ENEMY_" + id;
+    const objC_EnemyInner = "HUD_OBJ_C_ENEMY_INNER_" + id;
 
     const OBJ_Y = 70;
     const OBJ_SIZE = 46;
@@ -365,10 +441,14 @@ function createHUD(player: mod.Player){
 
     const COLOR_NEUTRAL = mod.CreateVector(0.39, 0.39, 0.39);
     const COLOR_NEUTRAL_INNER = mod.CreateVector(0, 0, 0);
-    const COLOR_FRIENDLY = mod.CreateVector(0.2, 0.55, 1);
-    const COLOR_ENEMY = mod.CreateVector(1, 0.25, 0.25);
+    const COLOR_FRIENDLY = mod.CreateVector(0.45, 0.75, 1);
+    const COLOR_FRIENDLY_INNER = mod.CreateVector(0.05, 0.2, 0.5);
+    const COLOR_ENEMY = mod.CreateVector(1, 0.6, 0.6);
+    const COLOR_ENEMY_INNER = mod.CreateVector(0.45, 0.05, 0.05);
     const NEUTRAL_ALPHA = 1;
     const NEUTRAL_INNER_ALPHA = 0.39;
+    const FRIENDLY_INNER_ALPHA = 0.75;
+    const ENEMY_INNER_ALPHA = 0.75;
 
     // =====================================================
     // CREATE ROOT
@@ -510,7 +590,7 @@ function createHUD(player: mod.Player){
 
     mod.AddUIContainer(
         redBarFillName,
-        mod.CreateVector(895, 25, 0),
+        mod.CreateVector(879, 25, 0),
         mod.CreateVector(0, 20, 0),
         mod.UIAnchor.TopLeft,
         root,
@@ -689,7 +769,7 @@ mod.AddUIText(
 // Friendly
 mod.AddUIText(
     objA_Friendly,
-    mod.CreateVector(-OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -705,11 +785,29 @@ mod.AddUIText(
     mod.UIAnchor.Center,
     player
 );
+mod.AddUIText(
+    objA_FriendlyInner,
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_FRIENDLY_INNER,
+    FRIENDLY_INNER_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
 
 // Enemy
 mod.AddUIText(
     objA_Enemy,
-    mod.CreateVector(-OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -717,6 +815,24 @@ mod.AddUIText(
     2,
     COLOR_ENEMY,
     1,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player
+);
+mod.AddUIText(
+    objA_EnemyInner,
+    mod.CreateVector(-OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_ENEMY_INNER,
+    ENEMY_INNER_ALPHA,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -766,7 +882,7 @@ mod.AddUIText(objB_NeutralInner,
     player);
 
 mod.AddUIText(objB_Friendly,
-    mod.CreateVector(0, OBJ_Y, 0),
+    mod.CreateVector(0, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -781,9 +897,25 @@ mod.AddUIText(objB_Friendly,
     0,
     mod.UIAnchor.Center,
     player);
+mod.AddUIText(objB_FriendlyInner,
+    mod.CreateVector(0, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_FRIENDLY_INNER,
+    FRIENDLY_INNER_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
 
 mod.AddUIText(objB_Enemy,
-    mod.CreateVector(0, OBJ_Y, 0),
+    mod.CreateVector(0, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -839,7 +971,7 @@ mod.AddUIText(objC_NeutralInner,
     player);
 
 mod.AddUIText(objC_Friendly,
-    mod.CreateVector(OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -854,9 +986,41 @@ mod.AddUIText(objC_Friendly,
     0,
     mod.UIAnchor.Center,
     player);
+mod.AddUIText(objB_EnemyInner,
+    mod.CreateVector(0, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_ENEMY_INNER,
+    ENEMY_INNER_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
+mod.AddUIText(objC_FriendlyInner,
+    mod.CreateVector(OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_FRIENDLY_INNER,
+    FRIENDLY_INNER_ALPHA,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
 
 mod.AddUIText(objC_Enemy,
-    mod.CreateVector(OBJ_SPACING, OBJ_Y, 0),
+    mod.CreateVector(OBJ_SPACING, OBJ_Y - 2, 0),
     mod.CreateVector(OBJ_SIZE, OBJ_SIZE, 0),
     mod.UIAnchor.TopCenter,
     root,
@@ -864,6 +1028,22 @@ mod.AddUIText(objC_Enemy,
     2,
     COLOR_ENEMY,
     1,
+    mod.UIBgFill.Solid,
+    mod.Message(" "),
+    0,
+    mod.CreateVector(1,1,1),
+    0,
+    mod.UIAnchor.Center,
+    player);
+mod.AddUIText(objC_EnemyInner,
+    mod.CreateVector(OBJ_SPACING, OBJ_Y + 2, 0),
+    mod.CreateVector(OBJ_INNER_SIZE, OBJ_INNER_SIZE, 0),
+    mod.UIAnchor.TopCenter,
+    root,
+    false,
+    3,
+    COLOR_ENEMY_INNER,
+    ENEMY_INNER_ALPHA,
     mod.UIBgFill.Solid,
     mod.Message(" "),
     0,
@@ -948,16 +1128,411 @@ mod.AddUIText(
         objA_Neutral,
         objA_NeutralInner,
         objA_Friendly,
+        objA_FriendlyInner,
         objA_Enemy,
+        objA_EnemyInner,
         objB_Neutral,
         objB_NeutralInner,
         objB_Friendly,
+        objB_FriendlyInner,
         objB_Enemy,
+        objB_EnemyInner,
         objC_Neutral,
         objC_NeutralInner,
         objC_Friendly,
-        objC_Enemy
+        objC_FriendlyInner,
+        objC_Enemy,
+        objC_EnemyInner
     });
+}
+
+// -----------------------------------------------------------------------------
+// TEAM SWITCH UI
+// -----------------------------------------------------------------------------
+function createTeamSwitchUi(player: mod.Player) {
+    const id = mod.GetObjId(player);
+    if (playerTeamSwitchUiMap.has(id)) return;
+
+    const hintTextName = "HUD_TEAM_SWITCH_HINT_" + id;
+    const panelName = "HUD_TEAM_SWITCH_PANEL_" + id;
+    const panelLabelName = "HUD_TEAM_SWITCH_LABEL_" + id;
+    const team1ButtonName = "HUD_TEAM_SWITCH_T1_" + id;
+    const team2ButtonName = "HUD_TEAM_SWITCH_T2_" + id;
+    const closeButtonName = "HUD_TEAM_SWITCH_CLOSE_" + id;
+    const team1TextName = "HUD_TEAM_SWITCH_T1_TEXT_" + id;
+    const team2TextName = "HUD_TEAM_SWITCH_T2_TEXT_" + id;
+    const closeTextName = "HUD_TEAM_SWITCH_CLOSE_TEXT_" + id;
+
+    mod.AddUIText(
+        hintTextName,
+        mod.CreateVector(20, 690, 0),
+        mod.CreateVector(440, 24, 0),
+        mod.UIAnchor.BottomLeft,
+        mod.GetUIRoot(),
+        true,
+        5,
+        mod.CreateVector(0, 0, 0),
+        0.35,
+        mod.UIBgFill.Solid,
+        mod.Message(mod.stringkeys.TEAM_SWITCH_HINT),
+        13,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    mod.AddUIContainer(
+        panelName,
+        mod.CreateVector(20, 500, 0),
+        mod.CreateVector(440, 150, 0),
+        mod.UIAnchor.BottomLeft,
+        mod.GetUIRoot(),
+        false,
+        6,
+        mod.CreateVector(0, 0, 0),
+        0.5,
+        mod.UIBgFill.Blur,
+        player
+    );
+
+    const panel = mod.FindUIWidgetWithName(panelName);
+    if (!panel) return;
+
+    mod.AddUIText(
+        panelLabelName,
+        mod.CreateVector(70, 14, 0),
+        mod.CreateVector(300, 24, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        7,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        mod.Message(mod.stringkeys.TEAM_SWITCH_LABEL),
+        15,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    mod.AddUIButton(
+        team1ButtonName,
+        mod.CreateVector(20, 50, 0),
+        mod.CreateVector(180, 36, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        7,
+        mod.CreateVector(0.1, 0.2, 0.4),
+        0.95,
+        mod.UIBgFill.Solid,
+        true,
+        mod.CreateVector(0.15, 0.35, 0.7),
+        1,
+        mod.CreateVector(0.12, 0.12, 0.12),
+        0.6,
+        mod.CreateVector(0.08, 0.2, 0.4),
+        1,
+        mod.CreateVector(0.2, 0.45, 0.85),
+        1,
+        mod.CreateVector(0.2, 0.45, 0.85),
+        1,
+        player
+    );
+
+    mod.AddUIText(
+        team1TextName,
+        mod.CreateVector(30, 56, 0),
+        mod.CreateVector(160, 24, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        8,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        mod.Message(mod.stringkeys.TEAM_SWITCH_JOIN_1),
+        13,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    mod.AddUIButton(
+        team2ButtonName,
+        mod.CreateVector(240, 50, 0),
+        mod.CreateVector(180, 36, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        7,
+        mod.CreateVector(0.4, 0.1, 0.1),
+        0.95,
+        mod.UIBgFill.Solid,
+        true,
+        mod.CreateVector(0.7, 0.15, 0.15),
+        1,
+        mod.CreateVector(0.12, 0.12, 0.12),
+        0.6,
+        mod.CreateVector(0.4, 0.1, 0.1),
+        1,
+        mod.CreateVector(0.85, 0.2, 0.2),
+        1,
+        mod.CreateVector(0.85, 0.2, 0.2),
+        1,
+        player
+    );
+
+    mod.AddUIText(
+        team2TextName,
+        mod.CreateVector(250, 56, 0),
+        mod.CreateVector(160, 24, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        8,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        mod.Message(mod.stringkeys.TEAM_SWITCH_JOIN_2),
+        13,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    mod.AddUIButton(
+        closeButtonName,
+        mod.CreateVector(130, 100, 0),
+        mod.CreateVector(180, 34, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        7,
+        mod.CreateVector(0.12, 0.12, 0.12),
+        0.9,
+        mod.UIBgFill.Solid,
+        true,
+        mod.CreateVector(0.2, 0.2, 0.2),
+        1,
+        mod.CreateVector(0.12, 0.12, 0.12),
+        0.6,
+        mod.CreateVector(0.1, 0.1, 0.1),
+        1,
+        mod.CreateVector(0.3, 0.3, 0.3),
+        1,
+        mod.CreateVector(0.3, 0.3, 0.3),
+        1,
+        player
+    );
+
+    mod.AddUIText(
+        closeTextName,
+        mod.CreateVector(140, 105, 0),
+        mod.CreateVector(160, 24, 0),
+        mod.UIAnchor.TopLeft,
+        panel,
+        false,
+        8,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        mod.Message(mod.stringkeys.TEAM_SWITCH_CLOSE),
+        13,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    playerTeamSwitchUiMap.set(id, {
+        hintTextName,
+        panelName,
+        panelLabelName,
+        team1ButtonName,
+        team2ButtonName,
+        closeButtonName,
+        team1TextName,
+        team2TextName,
+        closeTextName,
+        panelVisible: false,
+        tapCount: 0,
+        lastTapTime: -1000,
+        interactPoint: null,
+        panelOpenedAt: -1000
+    });
+
+    const team1Button = mod.FindUIWidgetWithName(team1ButtonName);
+    const team2Button = mod.FindUIWidgetWithName(team2ButtonName);
+    const closeButton = mod.FindUIWidgetWithName(closeButtonName);
+    if (team1Button) {
+        mod.EnableUIButtonEvent(team1Button, mod.UIButtonEvent.ButtonDown, true);
+        mod.EnableUIButtonEvent(team1Button, mod.UIButtonEvent.ButtonUp, true);
+    }
+    if (team2Button) {
+        mod.EnableUIButtonEvent(team2Button, mod.UIButtonEvent.ButtonDown, true);
+        mod.EnableUIButtonEvent(team2Button, mod.UIButtonEvent.ButtonUp, true);
+    }
+    if (closeButton) {
+        mod.EnableUIButtonEvent(closeButton, mod.UIButtonEvent.ButtonDown, true);
+        mod.EnableUIButtonEvent(closeButton, mod.UIButtonEvent.ButtonUp, true);
+    }
+
+    updateTeamSwitchButtonState(player);
+}
+
+function widgetOrAncestorMatchesName(
+    startWidget: mod.UIWidget,
+    expectedNames: string[],
+    maxDepth: number = 8
+): boolean {
+    let current: mod.UIWidget | undefined = startWidget;
+    for (let i = 0; i < maxDepth && current; i++) {
+        const name = mod.GetUIWidgetName(current);
+        for (let j = 0; j < expectedNames.length; j++) {
+            const expected = expectedNames[j];
+            if (name === expected || name === expected + "_BORDER" || name === expected + "_LABEL") {
+                return true;
+            }
+        }
+        current = mod.GetUIWidgetParent(current);
+    }
+    return false;
+}
+
+function setTeamSwitchPanelVisible(player: mod.Player, visible: boolean) {
+    const id = mod.GetObjId(player);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui) return;
+
+    const panel = mod.FindUIWidgetWithName(ui.panelName);
+    const label = mod.FindUIWidgetWithName(ui.panelLabelName);
+    const t1Button = mod.FindUIWidgetWithName(ui.team1ButtonName);
+    const t2Button = mod.FindUIWidgetWithName(ui.team2ButtonName);
+    const closeButton = mod.FindUIWidgetWithName(ui.closeButtonName);
+    const t1Text = mod.FindUIWidgetWithName(ui.team1TextName);
+    const t2Text = mod.FindUIWidgetWithName(ui.team2TextName);
+    const closeText = mod.FindUIWidgetWithName(ui.closeTextName);
+
+    if (panel) mod.SetUIWidgetVisible(panel, visible);
+    if (label) mod.SetUIWidgetVisible(label, visible);
+    if (t1Button) mod.SetUIWidgetVisible(t1Button, visible);
+    if (t2Button) mod.SetUIWidgetVisible(t2Button, visible);
+    if (closeButton) mod.SetUIWidgetVisible(closeButton, visible);
+    if (t1Text) mod.SetUIWidgetVisible(t1Text, visible);
+    if (t2Text) mod.SetUIWidgetVisible(t2Text, visible);
+    if (closeText) mod.SetUIWidgetVisible(closeText, visible);
+
+    ui.panelVisible = visible;
+    ui.panelOpenedAt = visible ? mod.GetMatchTimeElapsed() : -1000;
+
+    mod.EnableUIInputMode(visible, player);
+
+    if (visible) {
+        if (t1Button) mod.SetUIButtonEnabled(t1Button, true);
+        if (t2Button) mod.SetUIButtonEnabled(t2Button, true);
+        if (closeButton) mod.SetUIButtonEnabled(closeButton, true);
+        updateTeamSwitchButtonState(player);
+    }
+}
+
+function processInteractTap(player: mod.Player) {
+    const id = mod.GetObjId(player);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui) return;
+
+    const now = mod.GetMatchTimeElapsed();
+
+    if (now - ui.lastTapTime > TRIPLE_TAP_WINDOW_SECONDS) {
+        ui.tapCount = 0;
+    }
+
+    ui.tapCount++;
+    ui.lastTapTime = now;
+
+    if (ui.tapCount >= 3) {
+        ui.tapCount = 0;
+        setTeamSwitchPanelVisible(player, !ui.panelVisible);
+    }
+}
+
+function isPlayerLikelyDeployed(player: mod.Player): boolean {
+    return (
+        mod.GetSoldierState(player, mod.SoldierStateBool.IsAlive) ||
+        mod.GetSoldierState(player, mod.SoldierStateBool.IsDead) ||
+        mod.GetSoldierState(player, mod.SoldierStateBool.IsManDown)
+    );
+}
+
+function ensureTeamSwitchInteractPoint(player: mod.Player) {
+    if (!player || !mod.IsPlayerValid(player)) return;
+    if (!isPlayerLikelyDeployed(player)) return;
+
+    const id = mod.GetObjId(player);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui) return;
+    if (ui.interactPoint) return;
+
+    const playerPosition = mod.GetSoldierState(player, mod.SoldierStateVector.GetPosition);
+    const playerFacingDirection = mod.GetSoldierState(player, mod.SoldierStateVector.GetFacingDirection);
+    if (!playerPosition || !playerFacingDirection) return;
+
+    const interactPointPosition = mod.Add(
+        mod.Add(playerPosition, playerFacingDirection),
+        mod.CreateVector(0, 1.5, 0)
+    );
+
+    const interactPoint = mod.SpawnObject(
+        mod.RuntimeSpawn_Common.InteractPoint,
+        interactPointPosition,
+        mod.CreateVector(0, 0, 0)
+    ) as mod.InteractPoint;
+
+    mod.EnableInteractPoint(interactPoint, true);
+    ui.interactPoint = interactPoint;
+}
+
+function removeTeamSwitchInteractPoint(playerOrId: mod.Player | number) {
+    const id = mod.IsType(playerOrId, mod.Types.Player)
+        ? mod.GetObjId(playerOrId as mod.Player)
+        : (playerOrId as number);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui || !ui.interactPoint) return;
+
+    try {
+        mod.EnableInteractPoint(ui.interactPoint, false);
+        mod.UnspawnObject(ui.interactPoint);
+    } catch {
+        // Best effort cleanup.
+    }
+
+    ui.interactPoint = null;
+}
+
+function updateTeamSwitchButtonState(player: mod.Player) {
+    const id = mod.GetObjId(player);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui) return;
+
+    const t1Button = mod.FindUIWidgetWithName(ui.team1ButtonName);
+    const t2Button = mod.FindUIWidgetWithName(ui.team2ButtonName);
+    if (!t1Button || !t2Button) return;
+
+    mod.SetUIButtonEnabled(t1Button, true);
+    mod.SetUIButtonEnabled(t2Button, true);
+}
+
+async function forceUndeployPlayer(player: mod.Player): Promise<void> {
+    if (!player || !mod.IsPlayerValid(player)) return;
+    mod.UndeployPlayer(player);
+    await mod.Wait(0.05);
+    if (!player || !mod.IsPlayerValid(player)) return;
+    mod.UndeployPlayer(player);
 }
 function updateSingleObjectiveVisibility(
     playerTeam: mod.Team,
@@ -965,21 +1540,27 @@ function updateSingleObjectiveVisibility(
     neutralName: string,
     neutralInnerName: string,
     friendlyName: string,
-    enemyName: string
+    friendlyInnerName: string,
+    enemyName: string,
+    enemyInnerName: string
 ){
     // Resolve objective box visibility for neutral/friendly/enemy from this player's perspective.
     const neutral = mod.FindUIWidgetWithName(neutralName);
     const neutralInner = mod.FindUIWidgetWithName(neutralInnerName);
     const friendly = mod.FindUIWidgetWithName(friendlyName);
+    const friendlyInner = mod.FindUIWidgetWithName(friendlyInnerName);
     const enemy = mod.FindUIWidgetWithName(enemyName);
+    const enemyInner = mod.FindUIWidgetWithName(enemyInnerName);
 
-    if (!neutral || !neutralInner || !friendly || !enemy) return;
+    if (!neutral || !neutralInner || !friendly || !friendlyInner || !enemy || !enemyInner) return;
 
     // Hard reset first so only one state can be visible after this function.
     mod.SetUIWidgetVisible(neutral, false);
     mod.SetUIWidgetVisible(neutralInner, false);
     mod.SetUIWidgetVisible(friendly, false);
+    mod.SetUIWidgetVisible(friendlyInner, false);
     mod.SetUIWidgetVisible(enemy, false);
+    mod.SetUIWidgetVisible(enemyInner, false);
 
     // TRUE neutral detection
     if (
@@ -995,8 +1576,10 @@ function updateSingleObjectiveVisibility(
     // If owner matches player team, show friendly color; otherwise show enemy color.
     if (mod.Equals(playerTeam, ownerTeam)){
         mod.SetUIWidgetVisible(friendly, true);
+        mod.SetUIWidgetVisible(friendlyInner, true);
     } else {
         mod.SetUIWidgetVisible(enemy, true);
+        mod.SetUIWidgetVisible(enemyInner, true);
     }
 }
 
@@ -1027,7 +1610,9 @@ function updateAllObjectiveIcons(){
             hud.objA_Neutral,
             hud.objA_NeutralInner,
             hud.objA_Friendly,
-            hud.objA_Enemy
+            hud.objA_FriendlyInner,
+            hud.objA_Enemy,
+            hud.objA_EnemyInner
         );
 
         updateSingleObjectiveVisibility(
@@ -1036,7 +1621,9 @@ function updateAllObjectiveIcons(){
             hud.objB_Neutral,
             hud.objB_NeutralInner,
             hud.objB_Friendly,
-            hud.objB_Enemy
+            hud.objB_FriendlyInner,
+            hud.objB_Enemy,
+            hud.objB_EnemyInner
         );
 
         updateSingleObjectiveVisibility(
@@ -1045,7 +1632,9 @@ function updateAllObjectiveIcons(){
             hud.objC_Neutral,
             hud.objC_NeutralInner,
             hud.objC_Friendly,
-            hud.objC_Enemy
+            hud.objC_FriendlyInner,
+            hud.objC_Enemy,
+            hud.objC_EnemyInner
         );
     }
 }
@@ -1071,6 +1660,8 @@ function initializePlayerState(player: mod.Player){
 
     updatePlayerScoreBoard(player);
     createHUD(player);
+    createTeamSwitchUi(player);
+    ensureTeamSwitchInteractPoint(player);
 }
 
 function updatePlayerScoreBoard(player: mod.Player){
@@ -1086,17 +1677,28 @@ function updatePlayerScoreBoard(player: mod.Player){
 
 export function OnPlayerEarnKill(player: mod.Player){
     // Reward kill and score, then refresh the row.
+    awardKillAndScore(player);
+}
+
+export function OnPlayerDied(player: mod.Player, killer?: mod.Player){
+    // Track deaths and refresh the row.
+    mod.SetVariable(mod.ObjectVariable(player, playerDeaths),
+        mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerDeaths)),1));
+    updatePlayerScoreBoard(player);
+
+    // Fallback path for experiences where killer is provided on death event.
+    if (killer && mod.IsPlayerValid(killer) && !mod.Equals(killer, player)){
+        awardKillAndScore(killer);
+    }
+}
+
+function awardKillAndScore(player: mod.Player){
+    if (!player || !mod.IsPlayerValid(player)) return;
+
     mod.SetVariable(mod.ObjectVariable(player, playerKills),
         mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerKills)),1));
     mod.SetVariable(mod.ObjectVariable(player, playerScore),
         mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerScore)),100));
-    updatePlayerScoreBoard(player);
-}
-
-export function OnPlayerDied(player: mod.Player){
-    // Track deaths and refresh the row.
-    mod.SetVariable(mod.ObjectVariable(player, playerDeaths),
-        mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerDeaths)),1));
     updatePlayerScoreBoard(player);
 }
 
@@ -1124,5 +1726,99 @@ export function OnCapturePointCaptured(capturePoint: mod.CapturePoint){
             updateAllObjectiveIcons();
          }
     }
+}
+
+export function OnPlayerUIButtonEvent(
+    eventPlayer: mod.Player,
+    eventUIWidget: mod.UIWidget,
+    eventUIButtonEvent: mod.UIButtonEvent
+) {
+    const isButtonUp = mod.Equals(eventUIButtonEvent, mod.UIButtonEvent.ButtonUp);
+    const isButtonDown = mod.Equals(eventUIButtonEvent, mod.UIButtonEvent.ButtonDown);
+    if (!isButtonUp && !isButtonDown) return;
+
+    const id = mod.GetObjId(eventPlayer);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui || !ui.panelVisible) return;
+
+    const clickedName = mod.GetUIWidgetName(eventUIWidget);
+    const t1Button = mod.FindUIWidgetWithName(ui.team1ButtonName);
+    const t2Button = mod.FindUIWidgetWithName(ui.team2ButtonName);
+    const closeButton = mod.FindUIWidgetWithName(ui.closeButtonName);
+
+    const isCloseClick =
+        clickedName === ui.closeButtonName ||
+        clickedName === ui.closeTextName ||
+        (!!closeButton && mod.Equals(eventUIWidget, closeButton)) ||
+        widgetOrAncestorMatchesName(eventUIWidget, [ui.closeButtonName, ui.closeTextName]);
+    if (isCloseClick) {
+        if (!isButtonUp) return;
+        setTeamSwitchPanelVisible(eventPlayer, false);
+        return;
+    }
+
+    const isTeam1Click =
+        clickedName === ui.team1ButtonName ||
+        clickedName === ui.team1TextName ||
+        (!!t1Button && mod.Equals(eventUIWidget, t1Button)) ||
+        widgetOrAncestorMatchesName(eventUIWidget, [ui.team1ButtonName, ui.team1TextName]);
+    if (isTeam1Click) {
+        if (!isButtonUp) return;
+        mod.SetTeam(eventPlayer, mod.GetTeam(1));
+        updateTeamSwitchButtonState(eventPlayer);
+        setTeamSwitchPanelVisible(eventPlayer, false);
+        void forceUndeployPlayer(eventPlayer);
+        return;
+    }
+
+    const isTeam2Click =
+        clickedName === ui.team2ButtonName ||
+        clickedName === ui.team2TextName ||
+        (!!t2Button && mod.Equals(eventUIWidget, t2Button)) ||
+        widgetOrAncestorMatchesName(eventUIWidget, [ui.team2ButtonName, ui.team2TextName]);
+    if (isTeam2Click) {
+        if (!isButtonUp) return;
+        mod.SetTeam(eventPlayer, mod.GetTeam(2));
+        updateTeamSwitchButtonState(eventPlayer);
+        setTeamSwitchPanelVisible(eventPlayer, false);
+        void forceUndeployPlayer(eventPlayer);
+    }
+}
+
+export function OnPlayerSwitchTeam(eventPlayer: mod.Player, eventTeam: mod.Team) {
+    updateTeamSwitchButtonState(eventPlayer);
+}
+
+export function OngoingPlayer(eventPlayer: mod.Player) {
+    if (!eventPlayer || !mod.IsPlayerValid(eventPlayer)) return;
+
+    if (InteractMultiClickDetector.checkMultiClick(eventPlayer)) {
+        const id = mod.GetObjId(eventPlayer);
+        const ui = playerTeamSwitchUiMap.get(id);
+        if (ui) {
+            setTeamSwitchPanelVisible(eventPlayer, !ui.panelVisible);
+        }
+    }
+
+    const id = mod.GetObjId(eventPlayer);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (ui && ui.panelVisible && mod.GetMatchTimeElapsed() - ui.panelOpenedAt > 15) {
+        setTeamSwitchPanelVisible(eventPlayer, false);
+    }
+
+    if (isPlayerLikelyDeployed(eventPlayer)) {
+        ensureTeamSwitchInteractPoint(eventPlayer);
+    } else {
+        removeTeamSwitchInteractPoint(eventPlayer);
+    }
+}
+
+export function OnPlayerInteract(eventPlayer: mod.Player, eventInteractPoint: mod.InteractPoint) {
+    const id = mod.GetObjId(eventPlayer);
+    const ui = playerTeamSwitchUiMap.get(id);
+    if (!ui || !ui.interactPoint) return;
+
+    if (mod.GetObjId(eventInteractPoint) !== mod.GetObjId(ui.interactPoint)) return;
+    processInteractTap(eventPlayer);
 }
 

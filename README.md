@@ -4,7 +4,7 @@ Custom Battlefield Portal game mode focused on domination-style aerial objective
 
 ## Overview
 
-This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, and refined HUD visuals.
+This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, and integrated in-match team switching UX.
 
 ## Features
 
@@ -20,6 +20,8 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - Per-player mirrored HUD perspective (friendly vs enemy)
 - Dynamic team score bars (later versions)
 - Objective state widgets (neutral/friendly/enemy in latest version)
+- Triple-tap Interact (`E`) team-switch panel with Team 1/Team 2/Close controls
+- Layered objective icon styling (outer/inner plates) for neutral, friendly, and enemy states
 
 ## Version Guide
 
@@ -30,6 +32,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - `code/Airsup_v5.ts`: Adds dynamic score bar fill updates
 - `code/Airsup_v6.ts`: Adds dynamic objective ownership icon states
 - `code/Airsup_v7.ts`: Refines HUD visuals (readability, layering, and objective marker polish)
+- `code/Airsup_v7 copy.ts`: v7 integration branch with team-switch panel, layered friendly/enemy icon treatment, and kill-tracking/scoreboard reliability updates
 
 ## Project Structure
 

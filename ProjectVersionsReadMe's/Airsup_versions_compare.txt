@@ -240,3 +240,35 @@ Practical Conclusion
   - v6 is the first truly complete functional target.
 
   - v7 is the best practical presentation target when visual clarity matters in live play.
+v7 Extended Update (Current Branch Notes)
+=========================================
+
+  - v7 originally focused on HUD readability polish.
+
+  - Current v7 working branch (`Airsup_v7 copy.ts`) extends this with live team-switch UX and reliability fixes.
+
+  - New additions in v7 branch work:
+
+  - Triple-tap Interact (`E`) team-switch panel with Team 1 / Team 2 / Close actions.
+
+  - UI input-mode gating tied to panel visibility.
+
+  - Forced undeploy after team switch to guarantee correct redeploy side.
+
+  - Objective visual parity across all states:
+
+  - Neutral uses outer+inner stack.
+
+  - Friendly now matches stack style with light/dark blue pair.
+
+  - Enemy now matches stack style with light/dark red pair.
+
+  - Fine bar-anchor tuning to improve enemy bar growth alignment.
+
+  - Kill scoreboard tracking hardened through centralized kill award pathway + death-event killer fallback.
+
+Practical take-away:
+
+  - v7 is no longer just visual polish in the active branch;
+
+  - it now combines readability, interaction quality (team switching), and stat reliability improvements.

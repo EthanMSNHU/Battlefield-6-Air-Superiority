@@ -69,3 +69,31 @@ System Design Notes
 Why This Version Matters
 
   - It is the first version focused heavily on visual quality and in-match readability while preserving the stable gameplay architecture from v6.
+Latest v7 Addendum (Current Working State)
+=========================================
+
+  - Added integrated team-switch UX in `Airsup_v7 copy.ts`:
+
+  - Triple tap Interact (`E`) opens a Team Switch panel.
+
+  - Panel includes Team 1, Team 2, and Close actions.
+
+  - UI input mode is enabled while panel is open and disabled on close.
+
+  - Team switch action forces undeploy to ensure clean redeploy on new team.
+
+  - Added safety timeout auto-close to avoid stuck panel/input cases.
+
+  - Expanded objective visual design from neutral-only layering to full state parity:
+
+  - Neutral: solid outer + darker inner.
+
+  - Friendly: light-blue outer + dark-blue inner.
+
+  - Enemy: light-red outer + dark-red inner.
+
+  - All A/B/C objective stacks now follow identical outer/inner alignment.
+
+  - Red score bar anchor was fine-tuned incrementally for correct right-side growth alignment.
+
+  - Kill/scoreboard reliability was improved by centralizing kill award logic and adding death-event killer fallback support.
