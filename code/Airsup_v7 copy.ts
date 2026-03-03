@@ -145,7 +145,6 @@ let playerHudMap: Map<number, PlayerHud> = new Map();
 
 const CAPTURE_HUD_BAR_WIDTH = 260;
 const CAPTURE_HUD_BAR_HEIGHT = 16;
-// Pixel dimensions used by the live capture-progress meter.
 
 
 
@@ -399,7 +398,6 @@ function updateAllHudScores(){
 }
 
 function getObjectiveLetterForCapturePointId(capturePointId: number): string {
-    // Maps runtime capture-point IDs to HUD label letters.
     if (capturePointId === 100) return "A";
     if (capturePointId === 101) return "B";
     if (capturePointId === 102) return "C";
@@ -407,7 +405,6 @@ function getObjectiveLetterForCapturePointId(capturePointId: number): string {
 }
 
 function isPlayerInCapturePoint(player: mod.Player, capturePoint: mod.CapturePoint): boolean {
-    // Lightweight membership check for the current point occupancy list.
     const playersOnPoint = mod.GetPlayersOnPoint(capturePoint);
     const totalOnPoint = mod.CountOf(playersOnPoint);
     const playerId = mod.GetObjId(player);
@@ -422,8 +419,6 @@ function isPlayerInCapturePoint(player: mod.Player, capturePoint: mod.CapturePoi
 }
 
 function updatePlayerCaptureProgressHud(player: mod.Player) {
-    // Per-tick updater for the temporary "Capturing Objective" HUD.
-    // This only renders while capture progress is actively changing.
     if (!player || !mod.IsPlayerValid(player)) return;
 
     const id = mod.GetObjId(player);
@@ -440,7 +435,7 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
     const playerTeam = mod.GetTeam(player);
     const points = [100, 101, 102];
 
-    let activePointId = -1; // -1 means "no capture point currently driving this HUD".
+    let activePointId = -1;
     let activeProgress = 0.5;
     let activeProgressTeam: mod.Team | undefined = undefined;
 
@@ -460,7 +455,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
         const inFlightCapture = clamped > 0.01 && clamped < 0.99;
         if (!inFlightCapture) continue;
 
-        // First in-flight point found becomes the active source for this frame.
         activePointId = pointId;
         activeProgress = clamped;
         activeProgressTeam = progressTeam;
@@ -476,7 +470,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
         mod.SetUITextLabel(title, mod.Message("Capturing Objective " + objectiveLetter));
     }
 
-    // Convert global progress direction into player-relative friendly/enemy display.
     let friendlyProgress = activeProgress;
     const progressTeamIsValid =
         !!activeProgressTeam &&
@@ -488,7 +481,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
 
     friendlyProgress = Math.max(0, Math.min(1, friendlyProgress));
     const enemyProgress = 1 - friendlyProgress;
-    // Widths are mirrored from a shared fixed-size bar background.
     const friendlyWidth = Math.round(CAPTURE_HUD_BAR_WIDTH * friendlyProgress);
     const enemyWidth = Math.round(CAPTURE_HUD_BAR_WIDTH * enemyProgress);
 
@@ -506,7 +498,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
 }
 
 function hidePlayerCaptureProgressHud(player: mod.Player) {
-    // Hard-hide helper used on team switch / undeploy transitions.
     if (!player || !mod.IsPlayerValid(player)) return;
     const id = mod.GetObjId(player);
     const hud = playerHudMap.get(id);
@@ -547,7 +538,6 @@ function createHUD(player: mod.Player){
     const captureBarBgName = "HUD_CAPTURE_BAR_BG_" + id;
     const captureBarFriendlyName = "HUD_CAPTURE_BAR_FRIENDLY_" + id;
     const captureBarEnemyName = "HUD_CAPTURE_BAR_ENEMY_" + id;
-    // Capture HUD widget keys are persisted in playerHudMap for runtime updates.
 
     const objA_Neutral = "HUD_OBJ_A_NEUTRAL_" + id;
     const objA_NeutralInner = "HUD_OBJ_A_NEUTRAL_INNER_" + id;
@@ -759,7 +749,6 @@ function createHUD(player: mod.Player){
 
     const captureRoot = mod.FindUIWidgetWithName(captureRootName);
     if (captureRoot) {
-        // Static background shell; dynamic bars are children so they stay aligned.
         mod.AddUIContainer(
             captureBarBgName,
             mod.CreateVector(0, 22, 0),
@@ -776,7 +765,6 @@ function createHUD(player: mod.Player){
 
         const captureBarBg = mod.FindUIWidgetWithName(captureBarBgName);
         if (captureBarBg) {
-            // Friendly fill grows from left toward center.
             mod.AddUIContainer(
                 captureBarFriendlyName,
                 mod.CreateVector(-10, -8.5, 0),
@@ -791,7 +779,6 @@ function createHUD(player: mod.Player){
                 player
             );
 
-            // Enemy fill grows from right toward center.
             mod.AddUIContainer(
                 captureBarEnemyName,
                 mod.CreateVector(-10, -8.5, 0),
@@ -2002,7 +1989,6 @@ export function OnPlayerUIButtonEvent(
 
 export function OnPlayerSwitchTeam(eventPlayer: mod.Player, eventTeam: mod.Team) {
     updateTeamSwitchButtonState(eventPlayer);
-    // Prevent stale capture-state UI from carrying between teams/spawns.
     hidePlayerCaptureProgressHud(eventPlayer);
     updatePlayerCaptureProgressHud(eventPlayer);
 }
@@ -2029,7 +2015,6 @@ export function OngoingPlayer(eventPlayer: mod.Player) {
     if (isPlayerLikelyDeployed(eventPlayer)) {
         ensureTeamSwitchInteractPoint(eventPlayer);
     } else {
-        // Capture HUD should not remain visible while in deploy/death transitions.
         hidePlayerCaptureProgressHud(eventPlayer);
         removeTeamSwitchInteractPoint(eventPlayer);
     }

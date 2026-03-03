@@ -4,7 +4,7 @@ Custom Battlefield Portal game mode focused on domination-style aerial objective
 
 ## Overview
 
-This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, and integrated in-match team switching UX.
+This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, integrated in-match team switching UX, and live capture-progress HUD behavior.
 
 ## Features
 
@@ -22,6 +22,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - Objective state widgets (neutral/friendly/enemy in the latest version)
 - Triple-tap Interact (`E`) team-switch panel with Team 1/Team 2/Close controls
 - Layered objective icon styling (outer/inner plates) for neutral, friendly, and enemy states
+- Live "Capturing Objective" progress HUD with friendly/enemy split bar that only shows during in-flight capture progress
 
 ## Version Guide
 
@@ -31,8 +32,8 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - `code/Airsup_v4.ts`: Stabilized HUD updates via authoritative state + setters
 - `code/Airsup_v5.ts`: Adds dynamic score bar fill updates
 - `code/Airsup_v6.ts`: Adds dynamic objective ownership icon states
-- `code/Airsup_v7.ts`: Refines HUD visuals (readability, layering, and objective marker polish)
-- `code/Airsup_v7 copy.ts`: v7 integration branch with team-switch panel, layered friendly/enemy icon treatment, and kill-tracking/scoreboard reliability updates
+- `code/Airsup_v7.ts`: Current main version; includes polished HUD visuals, integrated team-switch UX, and live capture-progress HUD
+- `code/Airsup_v7 copy.ts`: Working/tuning copy of v7 used for iterative layout adjustments
 
 ## Project Structure
 
