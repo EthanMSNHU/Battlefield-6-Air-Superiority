@@ -4,7 +4,7 @@ Custom Battlefield Portal game mode focused on domination-style aerial objective
 
 ## Overview
 
-This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, integrated in-match team switching UX, and live capture-progress HUD behavior.
+This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, integrated in-match team switching UX, live capture-progress HUD behavior, and enemy HQ redzone enforcement.
 
 ## Features
 
@@ -23,6 +23,9 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - Triple-tap Interact (`E`) team-switch panel with Team 1/Team 2/Close controls
 - Layered objective icon styling (outer/inner plates) for neutral, friendly, and enemy states
 - Live "Capturing Objective" progress HUD with friendly/enemy split bar that only shows during in-flight capture progress
+- Enemy HQ redzones using AreaTriggers (ObjId `104` for Team 1 HQ, `105` for Team 2 HQ)
+- Redzone warning overlay (center-screen translucent black box) with live countdown
+- Redzone enforcement after `5` seconds (vehicle kill if occupied, otherwise player kill)
 
 ## Version Guide
 
@@ -33,7 +36,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 - `code/Airsup_v5.ts`: Adds dynamic score bar fill updates
 - `code/Airsup_v6.ts`: Adds dynamic objective ownership icon states
 - `code/Airsup_v7.ts`: Current main version; includes polished HUD visuals, integrated team-switch UX, and live capture-progress HUD
-- `code/Airsup_v7 copy.ts`: Working/tuning copy of v7 used for iterative layout adjustments
+- `code/Airsup_v7 copy.ts`: Current working/tuning branch of v7 including redzone warning/countdown + kill enforcement logic
 
 ## Project Structure
 
@@ -41,7 +44,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 .
 |-- code/
 |   |-- Airsup_v1.ts ... Airsup_v7.ts
-|   |-- Strings.json
+|   |-- strings.json
 |   |-- tsconfig.json
 |   `-- (supporting framework/plugin files)
 |-- dist/
@@ -68,7 +71,7 @@ This project contains multiple iterations of the Air Superiority mode (`Airsup_v
 
 ## Localization Strings
 
-- Source strings are defined in `code/Strings.json`
+- Source strings are defined in `code/strings.json`
 - Bundled output is written to `dist/bundle.strings.json`
 
 ## Development Notes

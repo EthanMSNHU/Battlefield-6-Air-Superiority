@@ -7,6 +7,8 @@ Purpose
 
   - Keeps full gameplay logic intact while improving objective HUD readability (plate contrast, layering, and letter visibility/alignment).
 
+  - Current working branch (`Airsup_v7 copy.ts`) additionally includes enemy-HQ redzone warning/countdown and kill enforcement.
+
 Major Functions And Why They Are Used
 
   - OnGameModeStarted()
@@ -25,7 +27,7 @@ Major Functions And Why They Are Used
   Why: Mirrors authoritative team score values to header labels so visible scoreboard totals always match internal state.
 
   - getSecondsPerPoint(pointsHeld)
-  Why: Isolates ticket pacing rules (3->1s, 2->5s, 1->10s) as a balancing function instead of scattering timing logic.
+  Why: Isolates ticket pacing rules (3->1s, 2->3s, 1->6s) as a balancing function instead of scattering timing logic.
 
   - updateTeamScores()
   Why: Core scoring authority. Reads objective ownership, advances timers, applies score increments, and triggers HUD/header refresh only when scores actually change.
@@ -37,7 +39,7 @@ Major Functions And Why They Are Used
   Why: Builds the entire per-player HUD widget tree once and registers widget names in PlayerHud map for later setter-based updates.
 
   - updateSingleObjectiveVisibility(...)
-  Why: Encapsulates objective-state rules for one objective stack, ensuring exactly one visual state is shown (neutral/friendly/enemy) from that player’s perspective.
+  Why: Encapsulates objective-state rules for one objective stack, ensuring exactly one visual state is shown (neutral/friendly/enemy) from that player's perspective.
 
   - updateAllObjectiveIcons()
   Why: Resolves current owners for A/B/C once per tick, then applies visibility state to every player HUD for synchronized objective visuals.
@@ -69,31 +71,36 @@ System Design Notes
 Why This Version Matters
 
   - It is the first version focused heavily on visual quality and in-match readability while preserving the stable gameplay architecture from v6.
-Latest v7 Addendum (Current Working State)
-=========================================
 
-  - Added integrated team-switch UX in `Airsup_v7 copy.ts`:
+Latest v7 Addendum (Current Working State in Airsup_v7 copy.ts)
+================================================================
 
-  - Triple tap Interact (`E`) opens a Team Switch panel.
+  - Team switch UX:
+    - Triple tap Interact (`E`) opens a Team Switch panel.
+    - Panel includes Team 1, Team 2, and Close actions.
+    - UI input mode is enabled while panel is open and disabled on close.
+    - Team switch action forces undeploy for clean redeploy.
+    - Safety timeout auto-closes the panel to avoid stuck input.
 
-  - Panel includes Team 1, Team 2, and Close actions.
+  - Capture progress HUD:
+    - Live "Capturing Objective X" widget appears only while capture progress is in-flight.
+    - Friendly/enemy split bar updates by player perspective.
+    - Progress handling supports runtimes that report `0..1` or `0..100`.
 
-  - UI input mode is enabled while panel is open and disabled on close.
+  - Objective visual parity:
+    - Neutral: solid outer + darker inner.
+    - Friendly: light-blue outer + dark-blue inner.
+    - Enemy: light-red outer + dark-red inner.
+    - A/B/C all use matching alignment and layer behavior.
 
-  - Team switch action forces undeploy to ensure clean redeploy on new team.
+  - Enemy HQ redzone enforcement:
+    - Team 1 HQ trigger ObjId: `104`
+    - Team 2 HQ trigger ObjId: `105`
+    - Enemy entering opposing HQ zone starts a warning countdown.
+    - Warning UI is a center-screen translucent black box with countdown text.
+    - Countdown currently set to `5` seconds.
+    - If still inside after timeout: destroy vehicle if occupied, otherwise kill player.
+    - Exiting zone, team switching, or dying cancels timer and hides warning UI.
 
-  - Added safety timeout auto-close to avoid stuck panel/input cases.
-
-  - Expanded objective visual design from neutral-only layering to full state parity:
-
-  - Neutral: solid outer + darker inner.
-
-  - Friendly: light-blue outer + dark-blue inner.
-
-  - Enemy: light-red outer + dark-red inner.
-
-  - All A/B/C objective stacks now follow identical outer/inner alignment.
-
-  - Red score bar anchor was fine-tuned incrementally for correct right-side growth alignment.
-
-  - Kill/scoreboard reliability was improved by centralizing kill award logic and adding death-event killer fallback support.
+  - Reliability improvements:
+    - Kill/scoreboard reliability improved with centralized kill award logic and death-event killer fallback.

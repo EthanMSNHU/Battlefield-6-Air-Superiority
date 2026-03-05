@@ -17,6 +17,8 @@
   "TEAM_SWITCH_DEBUG_ARMED": "TS Debug: interact point armed",
   "TEAM_SWITCH_DEBUG_TRIPLE": "TS Debug: triple interact detected",
   "TEAM_SWITCH_DEBUG_TAP": "TS Debug: tap {0}/3",
-  "TEAM_SWITCH_DEBUG_TIMEOUT": "TS Debug: panel auto-closed (safety)"
+  "TEAM_SWITCH_DEBUG_TIMEOUT": "TS Debug: panel auto-closed (safety)",
+  "REDZONE_WARNING_TITLE": "Out of bounds",
+  "REDZONE_WARNING_COUNTDOWN": "LEAVE ENEMY HQ: {0}s"
 }
   

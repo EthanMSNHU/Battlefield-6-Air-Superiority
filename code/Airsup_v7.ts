@@ -27,12 +27,41 @@ let team1ScoreTimer = 0;
 let team2ScoreTimer = 0;
 const TRIPLE_TAP_WINDOW_SECONDS = 1.25;
 const GAME_MODE_TARGET_SCORE = 200;
+// Enemy-HQ red zone trigger IDs (set from map AreaTrigger ObjIds).
+const TEAM1_REDZONE_TRIGGER_ID = 104;
+const TEAM2_REDZONE_TRIGGER_ID = 105;
+// Time an enemy may stay inside opposing HQ red zone before destruction.
+const REDZONE_KILL_DELAY_SECONDS = 5;
+// UI refresh cadence for the red zone countdown text.
+const REDZONE_UI_TICK_SECONDS = 0.1;
 // Authoritative state
 // Local source of truth for team scores; scoreboard and HUD derive from this object.
 let gameState = {
     team1Score: 0,
     team2Score: 0
 };
+
+interface PlayerRedZoneState {
+    // Which HQ trigger this player is currently violating.
+    zoneTriggerId: number;
+    // Cancellation token for async timer loops; incrementing invalidates older loops.
+    token: number;
+}
+
+// Per-player runtime red zone state (only populated while inside an enemy HQ red zone).
+const playerRedZoneStateMap: Map<number, PlayerRedZoneState> = new Map();
+
+interface PlayerRedZoneUi {
+    // Root warning box container.
+    rootName: string;
+    // Static warning title text.
+    titleName: string;
+    // Dynamic countdown text.
+    textName: string;
+}
+
+// Per-player UI widget registry for red zone warning overlay.
+const playerRedZoneUiMap: Map<number, PlayerRedZoneUi> = new Map();
 
 interface PlayerTeamSwitchUi {
     hintTextName: string;
@@ -145,7 +174,6 @@ let playerHudMap: Map<number, PlayerHud> = new Map();
 
 const CAPTURE_HUD_BAR_WIDTH = 260;
 const CAPTURE_HUD_BAR_HEIGHT = 16;
-// Pixel dimensions used by the live capture-progress meter.
 
 
 
@@ -399,7 +427,6 @@ function updateAllHudScores(){
 }
 
 function getObjectiveLetterForCapturePointId(capturePointId: number): string {
-    // Maps runtime capture-point IDs to HUD label letters.
     if (capturePointId === 100) return "A";
     if (capturePointId === 101) return "B";
     if (capturePointId === 102) return "C";
@@ -407,7 +434,6 @@ function getObjectiveLetterForCapturePointId(capturePointId: number): string {
 }
 
 function isPlayerInCapturePoint(player: mod.Player, capturePoint: mod.CapturePoint): boolean {
-    // Lightweight membership check for the current point occupancy list.
     const playersOnPoint = mod.GetPlayersOnPoint(capturePoint);
     const totalOnPoint = mod.CountOf(playersOnPoint);
     const playerId = mod.GetObjId(player);
@@ -422,8 +448,6 @@ function isPlayerInCapturePoint(player: mod.Player, capturePoint: mod.CapturePoi
 }
 
 function updatePlayerCaptureProgressHud(player: mod.Player) {
-    // Per-tick updater for the temporary "Capturing Objective" HUD.
-    // This only renders while capture progress is actively changing.
     if (!player || !mod.IsPlayerValid(player)) return;
 
     const id = mod.GetObjId(player);
@@ -440,7 +464,7 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
     const playerTeam = mod.GetTeam(player);
     const points = [100, 101, 102];
 
-    let activePointId = -1; // -1 means "no capture point currently driving this HUD".
+    let activePointId = -1;
     let activeProgress = 0.5;
     let activeProgressTeam: mod.Team | undefined = undefined;
 
@@ -460,7 +484,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
         const inFlightCapture = clamped > 0.01 && clamped < 0.99;
         if (!inFlightCapture) continue;
 
-        // First in-flight point found becomes the active source for this frame.
         activePointId = pointId;
         activeProgress = clamped;
         activeProgressTeam = progressTeam;
@@ -476,7 +499,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
         mod.SetUITextLabel(title, mod.Message("Capturing Objective " + objectiveLetter));
     }
 
-    // Convert global progress direction into player-relative friendly/enemy display.
     let friendlyProgress = activeProgress;
     const progressTeamIsValid =
         !!activeProgressTeam &&
@@ -488,7 +510,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
 
     friendlyProgress = Math.max(0, Math.min(1, friendlyProgress));
     const enemyProgress = 1 - friendlyProgress;
-    // Widths are mirrored from a shared fixed-size bar background.
     const friendlyWidth = Math.round(CAPTURE_HUD_BAR_WIDTH * friendlyProgress);
     const enemyWidth = Math.round(CAPTURE_HUD_BAR_WIDTH * enemyProgress);
 
@@ -506,7 +527,6 @@ function updatePlayerCaptureProgressHud(player: mod.Player) {
 }
 
 function hidePlayerCaptureProgressHud(player: mod.Player) {
-    // Hard-hide helper used on team switch / undeploy transitions.
     if (!player || !mod.IsPlayerValid(player)) return;
     const id = mod.GetObjId(player);
     const hud = playerHudMap.get(id);
@@ -547,7 +567,6 @@ function createHUD(player: mod.Player){
     const captureBarBgName = "HUD_CAPTURE_BAR_BG_" + id;
     const captureBarFriendlyName = "HUD_CAPTURE_BAR_FRIENDLY_" + id;
     const captureBarEnemyName = "HUD_CAPTURE_BAR_ENEMY_" + id;
-    // Capture HUD widget keys are persisted in playerHudMap for runtime updates.
 
     const objA_Neutral = "HUD_OBJ_A_NEUTRAL_" + id;
     const objA_NeutralInner = "HUD_OBJ_A_NEUTRAL_INNER_" + id;
@@ -759,7 +778,6 @@ function createHUD(player: mod.Player){
 
     const captureRoot = mod.FindUIWidgetWithName(captureRootName);
     if (captureRoot) {
-        // Static background shell; dynamic bars are children so they stay aligned.
         mod.AddUIContainer(
             captureBarBgName,
             mod.CreateVector(0, 22, 0),
@@ -776,7 +794,6 @@ function createHUD(player: mod.Player){
 
         const captureBarBg = mod.FindUIWidgetWithName(captureBarBgName);
         if (captureBarBg) {
-            // Friendly fill grows from left toward center.
             mod.AddUIContainer(
                 captureBarFriendlyName,
                 mod.CreateVector(-10, -8.5, 0),
@@ -791,7 +808,6 @@ function createHUD(player: mod.Player){
                 player
             );
 
-            // Enemy fill grows from right toward center.
             mod.AddUIContainer(
                 captureBarEnemyName,
                 mod.CreateVector(-10, -8.5, 0),
@@ -1746,6 +1762,253 @@ async function forceUndeployPlayer(player: mod.Player): Promise<void> {
     if (!player || !mod.IsPlayerValid(player)) return;
     mod.UndeployPlayer(player);
 }
+
+function getTeamNumber(team: mod.Team): number {
+    // Normalize engine Team object into numeric Team 1 / Team 2 identifiers.
+    if (mod.Equals(team, mod.GetTeam(1))) return 1;
+    if (mod.Equals(team, mod.GetTeam(2))) return 2;
+    return 0;
+}
+
+function isRedZoneTrigger(triggerId: number): boolean {
+    // Fast filter so area-trigger handlers only process red zone triggers.
+    return triggerId === TEAM1_REDZONE_TRIGGER_ID || triggerId === TEAM2_REDZONE_TRIGGER_ID;
+}
+
+function getRedZoneOwnerTeamNumber(triggerId: number): number {
+    // Team that owns this HQ red zone (friendlies are exempt, enemies are punished).
+    if (triggerId === TEAM1_REDZONE_TRIGGER_ID) return 1;
+    if (triggerId === TEAM2_REDZONE_TRIGGER_ID) return 2;
+    return 0;
+}
+
+function clearRedZoneStateForPlayer(playerOrId: mod.Player | number): void {
+    const pid = mod.IsType(playerOrId, mod.Types.Player)
+        ? mod.GetObjId(playerOrId as mod.Player)
+        : (playerOrId as number);
+    const state = playerRedZoneStateMap.get(pid);
+    if (!state) return;
+
+    // Invalidate pending timer checks before deleting state.
+    state.token++;
+    playerRedZoneStateMap.delete(pid);
+    // Hide warning box immediately whenever state is cleared.
+    hideRedZoneWarningForPlayerId(pid);
+}
+
+function isEnemyInsideRedZone(player: mod.Player, triggerId: number): boolean {
+    // True only when player is on the opposite team of this HQ zone owner.
+    if (!player || !mod.IsPlayerValid(player)) return false;
+    const zoneOwnerTeam = getRedZoneOwnerTeamNumber(triggerId);
+    if (zoneOwnerTeam === 0) return false;
+    const playerTeam = getTeamNumber(mod.GetTeam(player));
+    if (playerTeam === 0) return false;
+
+    return playerTeam !== zoneOwnerTeam;
+}
+
+function blowUpPlayerOrVehicle(player: mod.Player): void {
+    // If inside a vehicle, destroy vehicle first for expected "blow up" behavior.
+    // Otherwise kill infantry directly.
+    if (!player || !mod.IsPlayerValid(player)) return;
+
+    const isInVehicle = mod.GetSoldierState(player, mod.SoldierStateBool.IsInVehicle);
+    if (isInVehicle) {
+        try {
+            const vehicle = mod.GetVehicleFromPlayer(player);
+            if (vehicle) {
+                mod.Kill(vehicle);
+                return;
+            }
+        } catch {
+            // Fallback to soldier kill if vehicle reference is unavailable.
+        }
+    }
+
+    mod.Kill(player);
+}
+
+function ensureRedZoneWarningUi(player: mod.Player): void {
+    // Create once per player; reused for all future red-zone entries.
+    if (!player || !mod.IsPlayerValid(player)) return;
+    const playerId = mod.GetObjId(player);
+    if (playerRedZoneUiMap.has(playerId)) return;
+
+    const rootName = "HUD_REDZONE_WARNING_ROOT_" + playerId;
+    const titleName = "HUD_REDZONE_WARNING_TITLE_" + playerId;
+    const textName = "HUD_REDZONE_WARNING_TEXT_" + playerId;
+
+    mod.AddUIContainer(
+        rootName,
+        mod.CreateVector(0, -110, 0),
+        mod.CreateVector(760, 120, 0),
+        mod.UIAnchor.Center,
+        mod.GetUIRoot(),
+        false,
+        40,
+        mod.CreateVector(0, 0, 0),
+        0.58,
+        mod.UIBgFill.Blur,
+        player
+    );
+
+    const root = mod.FindUIWidgetWithName(rootName);
+    if (!root) return;
+
+    mod.AddUIText(
+        titleName,
+        mod.CreateVector(0, -24, 0),
+        mod.CreateVector(740, 40, 0),
+        mod.UIAnchor.Center,
+        root,
+        true,
+        41,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        // Use literal text here to avoid runtime "unknown string" when custom keys are not yet published.
+        mod.Message("Out of bounds"),
+        30,
+        mod.CreateVector(1, 1, 1),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    mod.AddUIText(
+        textName,
+        mod.CreateVector(0, 22, 0),
+        mod.CreateVector(740, 100, 0),
+        mod.UIAnchor.Center,
+        root,
+        true,
+        41,
+        mod.CreateVector(0, 0, 0),
+        0,
+        mod.UIBgFill.None,
+        // Reuse built-in score key as a safe numeric formatter for countdown text.
+        mod.Message(mod.stringkeys.score, REDZONE_KILL_DELAY_SECONDS),
+        34,
+        mod.CreateVector(1, 0.25, 0.25),
+        1,
+        mod.UIAnchor.Center,
+        player
+    );
+
+    // Cache widget names for fast runtime lookup.
+    playerRedZoneUiMap.set(playerId, { rootName, titleName, textName });
+}
+
+function setRedZoneWarningVisible(player: mod.Player, visible: boolean): void {
+    // Toggle warning overlay visibility without rebuilding widgets.
+    if (!player || !mod.IsPlayerValid(player)) return;
+    const playerId = mod.GetObjId(player);
+    const ui = playerRedZoneUiMap.get(playerId);
+    if (!ui) return;
+
+    const root = mod.FindUIWidgetWithName(ui.rootName);
+    if (root) mod.SetUIWidgetVisible(root, visible);
+}
+
+function setRedZoneWarningText(player: mod.Player, secondsRemaining: number): void {
+    // Update numeric countdown label (currently uses built-in score key as reliable fallback).
+    if (!player || !mod.IsPlayerValid(player)) return;
+    const playerId = mod.GetObjId(player);
+    const ui = playerRedZoneUiMap.get(playerId);
+    if (!ui) return;
+
+    const text = mod.FindUIWidgetWithName(ui.textName);
+    if (!text) return;
+
+    const clampedSeconds = Math.max(0, secondsRemaining);
+    // Round up to tenths so players never see "0.0" before the actual kill check completes.
+    const display = Math.ceil(clampedSeconds * 10) / 10;
+    mod.SetUITextLabel(text, mod.Message(mod.stringkeys.score, display));
+}
+
+function hideRedZoneWarningForPlayerId(playerId: number): void {
+    // Best-effort hide by player id (used by cleanup paths where Player object may be unavailable).
+    const ui = playerRedZoneUiMap.get(playerId);
+    if (!ui) return;
+
+    const root = mod.FindUIWidgetWithName(ui.rootName);
+    if (root) mod.SetUIWidgetVisible(root, false);
+}
+
+async function resolveRedZoneTimeout(
+    player: mod.Player,
+    playerId: number,
+    zoneTriggerId: number,
+    token: number
+): Promise<void> {
+    // Timer loop stays active only while token/zone/player validity checks remain true.
+    // Any exit/team-switch/death clears state and naturally cancels this loop.
+    let elapsed = 0;
+    while (elapsed < REDZONE_KILL_DELAY_SECONDS) {
+        const state = playerRedZoneStateMap.get(playerId);
+        if (!state) return;
+        if (state.token !== token) return;
+        if (state.zoneTriggerId !== zoneTriggerId) return;
+        if (!player || !mod.IsPlayerValid(player)) {
+            clearRedZoneStateForPlayer(playerId);
+            return;
+        }
+        if (!isEnemyInsideRedZone(player, zoneTriggerId)) {
+            clearRedZoneStateForPlayer(playerId);
+            return;
+        }
+
+        const remaining = REDZONE_KILL_DELAY_SECONDS - elapsed;
+        try {
+            // UI updates are intentionally isolated from kill logic with try/catch.
+            setRedZoneWarningText(player, remaining);
+            setRedZoneWarningVisible(player, true);
+        } catch {
+            // Never let UI text issues block red-zone kill enforcement.
+        }
+
+        await mod.Wait(REDZONE_UI_TICK_SECONDS);
+        elapsed += REDZONE_UI_TICK_SECONDS;
+    }
+
+    const finalState = playerRedZoneStateMap.get(playerId);
+    if (!finalState) return;
+    if (finalState.token !== token) return;
+    if (finalState.zoneTriggerId !== zoneTriggerId) return;
+    if (!player || !mod.IsPlayerValid(player)) {
+        clearRedZoneStateForPlayer(playerId);
+        return;
+    }
+    if (!isEnemyInsideRedZone(player, zoneTriggerId)) {
+        clearRedZoneStateForPlayer(playerId);
+        return;
+    }
+
+    // Player remained in enemy HQ through full timeout; apply destruction.
+    blowUpPlayerOrVehicle(player);
+    clearRedZoneStateForPlayer(playerId);
+}
+
+function startRedZoneCountdownForPlayer(player: mod.Player, zoneTriggerId: number): void {
+    // Begin (or refresh) per-player violation timer when entering enemy HQ red zone.
+    if (!player || !mod.IsPlayerValid(player)) return;
+    const playerId = mod.GetObjId(player);
+    ensureRedZoneWarningUi(player);
+
+    const existing = playerRedZoneStateMap.get(playerId);
+    // Already counting down for this same zone; avoid duplicate async loops.
+    if (existing && existing.zoneTriggerId === zoneTriggerId) return;
+
+    // New token invalidates any earlier async timer still running for this player.
+    const nextToken = (existing?.token ?? 0) + 1;
+    playerRedZoneStateMap.set(playerId, {
+        zoneTriggerId,
+        token: nextToken
+    });
+
+    void resolveRedZoneTimeout(player, playerId, zoneTriggerId, nextToken);
+}
+
 function updateSingleObjectiveVisibility(
     playerTeam: mod.Team,
     ownerTeam: mod.Team,
@@ -1857,6 +2120,8 @@ function updateAllObjectiveIcons(){
 // PLAYER EVENTS
 // -----------------------------------------------------------------------------
 export function OnPlayerJoinGame(player: mod.Player){
+    // Fresh join should not inherit stale red-zone state.
+    clearRedZoneStateForPlayer(player);
     initializePlayerState(player);
     // Force immediate sync so late-join players see correct score/objective states instantly.
     updateAllHudScores();
@@ -1873,6 +2138,8 @@ function initializePlayerState(player: mod.Player){
 
     updatePlayerScoreBoard(player);
     createHUD(player);
+    // Pre-build red-zone warning UI once so first violation shows instantly.
+    ensureRedZoneWarningUi(player);
     createTeamSwitchUi(player);
     ensureTeamSwitchInteractPoint(player);
     updatePlayerCaptureProgressHud(player);
@@ -1895,6 +2162,8 @@ export function OnPlayerEarnKill(player: mod.Player){
 }
 
 export function OnPlayerDied(player: mod.Player, killer?: mod.Player){
+    // Death clears any active red-zone timer/overlay.
+    clearRedZoneStateForPlayer(player);
     // Track deaths and refresh the row.
     mod.SetVariable(mod.ObjectVariable(player, playerDeaths),
         mod.Add(mod.GetVariable(mod.ObjectVariable(player, playerDeaths)),1));
@@ -2001,10 +2270,44 @@ export function OnPlayerUIButtonEvent(
 }
 
 export function OnPlayerSwitchTeam(eventPlayer: mod.Player, eventTeam: mod.Team) {
+    // Team switch invalidates current red-zone context and countdown.
+    clearRedZoneStateForPlayer(eventPlayer);
     updateTeamSwitchButtonState(eventPlayer);
-    // Prevent stale capture-state UI from carrying between teams/spawns.
     hidePlayerCaptureProgressHud(eventPlayer);
     updatePlayerCaptureProgressHud(eventPlayer);
+}
+
+export function OnPlayerEnterAreaTrigger(eventPlayer: mod.Player, eventAreaTrigger: mod.AreaTrigger) {
+    if (!eventPlayer || !mod.IsPlayerValid(eventPlayer)) return;
+    if (!eventAreaTrigger) return;
+
+    const triggerId = mod.GetObjId(eventAreaTrigger);
+    if (!isRedZoneTrigger(triggerId)) return;
+
+    if (!isEnemyInsideRedZone(eventPlayer, triggerId)) {
+        // Friendly re-entry into own HQ zone should always clear warning/timers.
+        clearRedZoneStateForPlayer(eventPlayer);
+        return;
+    }
+
+    // Enemy entered opposing HQ zone; start countdown-to-destruction flow.
+    startRedZoneCountdownForPlayer(eventPlayer, triggerId);
+}
+
+export function OnPlayerExitAreaTrigger(eventPlayer: mod.Player, eventAreaTrigger: mod.AreaTrigger) {
+    if (!eventPlayer || !mod.IsPlayerValid(eventPlayer)) return;
+    if (!eventAreaTrigger) return;
+
+    const triggerId = mod.GetObjId(eventAreaTrigger);
+    if (!isRedZoneTrigger(triggerId)) return;
+
+    const playerId = mod.GetObjId(eventPlayer);
+    const state = playerRedZoneStateMap.get(playerId);
+    if (!state) return;
+    if (state.zoneTriggerId !== triggerId) return;
+
+    // Leaving the active violating zone cancels timer and hides warning overlay.
+    clearRedZoneStateForPlayer(playerId);
 }
 
 export function OngoingPlayer(eventPlayer: mod.Player) {
@@ -2029,7 +2332,6 @@ export function OngoingPlayer(eventPlayer: mod.Player) {
     if (isPlayerLikelyDeployed(eventPlayer)) {
         ensureTeamSwitchInteractPoint(eventPlayer);
     } else {
-        // Capture HUD should not remain visible while in deploy/death transitions.
         hidePlayerCaptureProgressHud(eventPlayer);
         removeTeamSwitchInteractPoint(eventPlayer);
     }
