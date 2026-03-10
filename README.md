@@ -111,6 +111,7 @@ This project is functionally inspired by Battlefield 4's Air Superiority mode: a
 
 - `docs/versions/airsup-v1.md` through `docs/versions/airsup-v7.md`
 - `docs/comparisons/airsup-versions-compare.md`
+- `docs/comparisons/godot-levels-analysis.md`
 
 ## Godot Level Files
 
@@ -120,6 +121,7 @@ This project is functionally inspired by Battlefield 4's Air Superiority mode: a
 - Project-authored map work includes hand-built air and infantry spawn locations using asset-library content, HQ spawn setup, objective placement, vehicle respawners, play-space setup, and overall air-combat flow needed to make the mode playable from scratch
 - Polygon-based gameplay volumes were used to define map borders, HQ areas, and objective spaces, giving each Air Superiority layout its custom playable structure
 - The underlying environmental art and base terrain come from the shipped Battlefield 6 maps; the custom design work in this repository is the game-mode layout and aerial combat structure added through Godot and Portal-compatible spatial files
+- A deeper file-by-file breakdown is documented in `docs/comparisons/godot-levels-analysis.md`
 
 ## Air Superiority Design Basis
 
