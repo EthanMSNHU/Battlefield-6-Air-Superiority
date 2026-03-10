@@ -7,6 +7,7 @@ Custom Battlefield Portal game mode project focused on aerial objective control,
 This repository now follows a cleaner source layout:
 
 - `src/` contains active source code and supporting framework files
+- `src/GodotLevels/` contains exported `.spatial.json` level files used for map iteration/reference
 - `docs/` contains version notes and comparison docs
 - `dist/` contains generated bundle output
 - `reference/` contains non-production reference scripts kept separate from active source
@@ -50,6 +51,12 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 |   |   `-- variants/
 |   |       |-- air-radar.ts
 |   |       `-- team-swapper.ts
+|   |-- GodotLevels/
+|   |   |-- Airsup_firestorm.spatial.json
+|   |   |-- Airsup_LiberationPeak.spatial.json
+|   |   |-- Airsup_mirak.spatial.json
+|   |   |-- FireStormCompJetDF.spatial.json
+|   |   `-- MirakCompJetDF.spatial.json
 |   |-- bf6-portal-utils/
 |   |-- game/
 |   |-- gdconverter/
@@ -88,6 +95,11 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 
 - `docs/versions/airsup-v1.md` through `docs/versions/airsup-v7.md`
 - `docs/comparisons/airsup-versions-compare.md`
+
+## Godot Level Files
+
+- `src/GodotLevels/` stores exported map `.spatial.json` files for Air Sup map setups and related comparison/reference scenes
+- Current tracked files include Firestorm, Liberation Peak, Mirak, and comp variants used during map setup iteration
 
 ## Localization Strings
 
