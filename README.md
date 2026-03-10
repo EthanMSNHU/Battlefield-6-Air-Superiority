@@ -50,7 +50,18 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 |   |   |       `-- v7-tuning.ts
 |   |   `-- variants/
 |   |       |-- air-radar.ts
-|   |       `-- team-swapper.ts
+|   |       |-- captureProgressHudHelpers.ts
+|   |       |-- gameModeVariables.ts
+|   |       |-- hudCreation.ts
+|   |       |-- hudUpdates.ts
+|   |       |-- initializeGameMode.ts
+|   |       |-- objectiveIconUpdates.ts
+|   |       |-- playerEvents.ts
+|   |       |-- redZoneHelpers.ts
+|   |       |-- scoreboard.ts
+|   |       |-- team-swapper.ts
+|   |       |-- teamScoring.ts
+|   |       `-- teamSwitchUi.ts
 |   |-- GodotLevels/
 |   |   |-- Airsup_firestorm.spatial.json
 |   |   |-- Airsup_LiberationPeak.spatial.json
@@ -90,6 +101,7 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 - `src/GameModeCode/airsup/entrypoints/`: Build entrypoints and shared Air Sup `strings.json`
 - `src/GameModeCode/variants/air-radar.ts`: Standalone radar-focused variant
 - `src/GameModeCode/variants/team-swapper.ts`: Standalone team-switch-focused variant
+- `src/GameModeCode/variants/*.ts`: Direct copy-out reference files from `v7` split by major function/region block
 
 ## Documentation
 
@@ -116,6 +128,7 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 
 - Later HUD versions are designed around one-time widget creation and runtime setter updates.
 - `reference/` is intentionally separated from `src/` so reference scripts do not sit beside active production files.
+- The extra `src/GameModeCode/variants/` Air Sup files are literal copy/paste extracts from `v7` for reference and reuse; they are not refactored standalone modules.
 
 ## Ownership and Attribution
 
