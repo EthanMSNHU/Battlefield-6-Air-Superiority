@@ -118,12 +118,6 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 - Source strings for the Air Sup builds are defined in `src/GameModeCode/airsup/entrypoints/strings.json`
 - Bundled output is written to `dist/bundle.strings.json`
 
-## Build
-
-- `npm run build` builds the main `v7` entrypoint
-- `npm run build:v7-tuning` builds the tuning branch
-- `npm run build:v4` builds the `v4` milestone version
-
 ## Development Notes
 
 - Later HUD versions are designed around one-time widget creation and runtime setter updates.
