@@ -30,7 +30,7 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 ```text
 .
 |-- src/
-|   |-- modes/
+|   |-- GameModeCode/
 |   |   |-- airsup/
 |   |   |   |-- entrypoints/
 |   |   |   |   |-- v4.ts
@@ -50,8 +50,13 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 |   |   `-- variants/
 |   |       |-- air-radar.ts
 |   |       `-- team-swapper.ts
-|   |-- types/
-|   `-- (supporting framework/plugin files)
+|   |-- bf6-portal-utils/
+|   |-- game/
+|   |-- gdconverter/
+|   |-- gdplugins/
+|   |-- helpers/
+|   |-- modlib/
+|   `-- types/
 |-- docs/
 |   |-- versions/
 |   `-- comparisons/
@@ -67,17 +72,17 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 
 ## Version Guide
 
-- `src/modes/airsup/versions/v1.ts`: Core mode logic and scoreboard tracking
-- `src/modes/airsup/versions/v2.ts`: First HUD layer
-- `src/modes/airsup/versions/v3.ts`: Objective placeholder and letter UI
-- `src/modes/airsup/versions/v4.ts`: Authoritative score state plus setter-based HUD updates
-- `src/modes/airsup/versions/v5.ts`: Dynamic score bar fills
-- `src/modes/airsup/versions/v6.ts`: Objective ownership icon states
-- `src/modes/airsup/versions/v7.ts`: Main full-feature version
-- `src/modes/airsup/working/v7-tuning.ts`: Active tuning branch of v7
-- `src/modes/airsup/entrypoints/`: Build entrypoints and shared Air Sup `strings.json`
-- `src/modes/variants/air-radar.ts`: Standalone radar-focused variant
-- `src/modes/variants/team-swapper.ts`: Standalone team-switch-focused variant
+- `src/GameModeCode/airsup/versions/v1.ts`: Core mode logic and scoreboard tracking
+- `src/GameModeCode/airsup/versions/v2.ts`: First HUD layer
+- `src/GameModeCode/airsup/versions/v3.ts`: Objective placeholder and letter UI
+- `src/GameModeCode/airsup/versions/v4.ts`: Authoritative score state plus setter-based HUD updates
+- `src/GameModeCode/airsup/versions/v5.ts`: Dynamic score bar fills
+- `src/GameModeCode/airsup/versions/v6.ts`: Objective ownership icon states
+- `src/GameModeCode/airsup/versions/v7.ts`: Main full-feature version
+- `src/GameModeCode/airsup/working/v7-tuning.ts`: Active tuning branch of v7
+- `src/GameModeCode/airsup/entrypoints/`: Build entrypoints and shared Air Sup `strings.json`
+- `src/GameModeCode/variants/air-radar.ts`: Standalone radar-focused variant
+- `src/GameModeCode/variants/team-swapper.ts`: Standalone team-switch-focused variant
 
 ## Documentation
 
@@ -86,7 +91,7 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 
 ## Localization Strings
 
-- Source strings for the Air Sup builds are defined in `src/modes/airsup/entrypoints/strings.json`
+- Source strings for the Air Sup builds are defined in `src/GameModeCode/airsup/entrypoints/strings.json`
 - Bundled output is written to `dist/bundle.strings.json`
 
 ## Build
@@ -102,7 +107,7 @@ The main Air Superiority mode evolves from `v1` through `v7`, with standalone va
 
 ## Ownership and Attribution
 
-- Original project files by Ethan Mills include `src/modes/airsup/`, `src/modes/variants/`, and `docs/`
+- Original project files by Ethan Mills include `src/GameModeCode/airsup/`, `src/GameModeCode/variants/`, and `docs/`
 - Supporting framework/template directories were sourced from `https://github.com/deluca-mike/bf6-portal-scripting-template`
 - Team switch UI approach/templates were adapted from `https://github.com/The0zzy/BF6-Portal-TeamSwitchUI`
 - See `THIRD_PARTY_NOTICES.md` for the full attribution mapping
