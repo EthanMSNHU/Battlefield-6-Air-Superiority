@@ -1,17 +1,13 @@
-// --- BUNDLED TYPESCRIPT OUTPUT ---
-// @ts-nocheck
-
-// --- SOURCE: src\modes\airsup\versions\v7.ts ---
 /**
  * Airsup_v7
- * Current full-feature Air Sup mode with scoring, HUD, team switching, capture progress, and HQ redzones.
+ * Working copy of the full-feature Air Sup mode used for live tuning and iteration.
  *
  * Overview:
- * - Preserves the authoritative score and objective systems from earlier versions.
- * - Adds polished objective styling, a live capture-progress HUD, triple-tap team switching, and enemy-HQ redzone enforcement.
+ * - Mirrors the v7 gameplay/HUD feature set: authoritative scoring, capture progress, team switching, and HQ redzones.
+ * - Serves as the active adjustment branch for layout, tuning, and match-side refinement.
  *
  * Version Focus:
- * - Combines the project's mature gameplay logic with its most complete HUD and utility feature set.
+ * - Keeps the full v7 system intact while providing a safer place for incremental tweaks than the main v7 file.
  * Copyright (c) 2026 Ethan Mills. All rights reserved.
  */
 
@@ -2365,9 +2361,4 @@ export function OnPlayerInteract(eventPlayer: mod.Player, eventInteractPoint: mo
     processInteractTap(eventPlayer);
 }
 //#endregion
-
-
-
-// --- SOURCE: src\modes\airsup\entrypoints\v7.ts ---
-
 

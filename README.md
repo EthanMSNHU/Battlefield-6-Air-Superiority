@@ -1,97 +1,111 @@
-﻿# Battlefield 6 Air Superiority
+# Battlefield 6 Air Superiority
 
-Custom Battlefield Portal game mode focused on domination-style aerial objective control and a custom HUD/scoreboard workflow built in TypeScript.
+Custom Battlefield Portal game mode project focused on aerial objective control, custom HUD systems, and iterative TypeScript mode development.
 
 ## Overview
 
-This project contains multiple iterations of the Air Superiority mode (`Airsup_v1` through `Airsup_v7`) showing progression from core scoring logic to a full custom HUD with dynamic score bars, live objective ownership indicators, refined HUD visuals, integrated in-match team switching UX, live capture-progress HUD behavior, and enemy HQ redzone enforcement.
+This repository now follows a cleaner source layout:
+
+- `src/` contains active source code and supporting framework files
+- `docs/` contains version notes and comparison docs
+- `dist/` contains generated bundle output
+- `reference/` contains non-production reference scripts kept separate from active source
+
+The main Air Superiority mode evolves from `v1` through `v7`, with standalone variants for radar and team switching, plus a dedicated working branch for live tuning.
 
 ## Features
 
-- Custom two-team scoreboard with player stats:
-  - Score
-  - Kills
-  - Deaths
-  - Captures
-- Domination-style objective control scoring model:
-  - 3 objectives held: score every 1 second
-  - 2 objectives held: score every 3 seconds
-  - 1 objective held: score every 6 seconds
-- Per-player mirrored HUD perspective (friendly vs enemy)
-- Dynamic team score bars (later versions)
-- Objective state widgets (neutral/friendly/enemy in the latest version)
-- Triple-tap Interact (`E`) team-switch panel with Team 1/Team 2/Close controls
-- Layered objective icon styling (outer/inner plates) for neutral, friendly, and enemy states
-- Live "Capturing Objective" progress HUD with friendly/enemy split bar that only shows during in-flight capture progress
-- Enemy HQ redzones using AreaTriggers (ObjId `104` for Team 1 HQ, `105` for Team 2 HQ)
-- Redzone warning overlay (center-screen translucent black box) with live countdown
-- Redzone enforcement after `5` seconds (vehicle kill if occupied, otherwise player kill)
+- Custom two-team scoreboard with `Score`, `Kills`, `Deaths`, and `Captures`
+- Domination-style objective control scoring
+- Per-player mirrored HUD perspective
+- Dynamic team score bars
+- Objective state widgets for neutral, friendly, and enemy ownership
+- Triple-tap Interact (`E`) team-switch panel
+- Live capture-progress HUD
+- Enemy HQ redzones using AreaTriggers `104` and `105`
+- Redzone warning overlay and timed destruction enforcement
 
-## Version Guide
-
-- `code/Airsup_v1.ts`: Core mode logic and scoreboard tracking
-- `code/Airsup_v2.ts`: Adds first HUD layer
-- `code/Airsup_v3.ts`: Adds objective placeholder/letter UI
-- `code/Airsup_v4.ts`: Stabilized HUD updates via authoritative state + setters
-- `code/Airsup_v5.ts`: Adds dynamic score bar fill updates
-- `code/Airsup_v6.ts`: Adds dynamic objective ownership icon states
-- `code/Airsup_v7.ts`: Current main version; includes polished HUD visuals, integrated team-switch UX, and live capture-progress HUD
-- `code/Airsup_v7 copy.ts`: Current working/tuning branch of v7 including redzone warning/countdown + kill enforcement logic
-
-## Project Structure
+## Source Layout
 
 ```text
 .
-|-- code/
-|   |-- Airsup_v1.ts ... Airsup_v7.ts
-|   |-- strings.json
-|   |-- tsconfig.json
+|-- src/
+|   |-- modes/
+|   |   |-- airsup/
+|   |   |   |-- entrypoints/
+|   |   |   |   |-- v4.ts
+|   |   |   |   |-- v7.ts
+|   |   |   |   |-- v7-tuning.ts
+|   |   |   |   `-- strings.json
+|   |   |   |-- versions/
+|   |   |   |   |-- v1.ts
+|   |   |   |   |-- v2.ts
+|   |   |   |   |-- v3.ts
+|   |   |   |   |-- v4.ts
+|   |   |   |   |-- v5.ts
+|   |   |   |   |-- v6.ts
+|   |   |   |   `-- v7.ts
+|   |   |   `-- working/
+|   |   |       `-- v7-tuning.ts
+|   |   `-- variants/
+|   |       |-- air-radar.ts
+|   |       `-- team-swapper.ts
+|   |-- types/
 |   `-- (supporting framework/plugin files)
+|-- docs/
+|   |-- versions/
+|   `-- comparisons/
 |-- dist/
 |   |-- bundle.ts
 |   `-- bundle.strings.json
-|-- ProjectVersionsReadMe's/
-|   |-- Airsup_v1.txt ... Airsup_v7.txt
-|   |-- Airsup_versions_compare.txt
-|   `-- AiReadMe_v4.txt
+|-- reference/
+|   `-- twl-vehicles-only-script.ts
 |-- package.json
+|-- tsconfig.json
 `-- README.md
 ```
 
-## Documentation Folder Breakdown
+## Version Guide
 
-`ProjectVersionsReadMe's/` contains version-focused documentation files:
+- `src/modes/airsup/versions/v1.ts`: Core mode logic and scoreboard tracking
+- `src/modes/airsup/versions/v2.ts`: First HUD layer
+- `src/modes/airsup/versions/v3.ts`: Objective placeholder and letter UI
+- `src/modes/airsup/versions/v4.ts`: Authoritative score state plus setter-based HUD updates
+- `src/modes/airsup/versions/v5.ts`: Dynamic score bar fills
+- `src/modes/airsup/versions/v6.ts`: Objective ownership icon states
+- `src/modes/airsup/versions/v7.ts`: Main full-feature version
+- `src/modes/airsup/working/v7-tuning.ts`: Active tuning branch of v7
+- `src/modes/airsup/entrypoints/`: Build entrypoints and shared Air Sup `strings.json`
+- `src/modes/variants/air-radar.ts`: Standalone radar-focused variant
+- `src/modes/variants/team-swapper.ts`: Standalone team-switch-focused variant
 
-- `Airsup_v1.txt ... Airsup_v7.txt`
-  - Per-version explanations of major blocks, functions, and `mod.*` usage.
-- `Airsup_versions_compare.txt`
-  - Side-by-side progression summary from v1 through v7.
-- `AiReadMe_v4.txt`
-  - Architecture notes and stability lessons captured during v4-era iteration.
+## Documentation
+
+- `docs/versions/airsup-v1.md` through `docs/versions/airsup-v7.md`
+- `docs/comparisons/airsup-versions-compare.md`
 
 ## Localization Strings
 
-- Source strings are defined in `code/strings.json`
+- Source strings for the Air Sup builds are defined in `src/modes/airsup/entrypoints/strings.json`
 - Bundled output is written to `dist/bundle.strings.json`
+
+## Build
+
+- `npm run build` builds the main `v7` entrypoint
+- `npm run build:v7-tuning` builds the tuning branch
+- `npm run build:v4` builds the `v4` milestone version
 
 ## Development Notes
 
-- Version explanation documents are included in the repository for reference.
-- HUD architecture in later versions is designed around:
-  - one-time widget creation
-  - runtime setter updates (`SetUITextLabel`, `SetUIWidgetSize`, `SetUIWidgetVisible`)
-  - per-player widget name mapping
+- Later HUD versions are designed around one-time widget creation and runtime setter updates.
+- `reference/` is intentionally separated from `src/` so reference scripts do not sit beside active production files.
 
 ## Ownership and Attribution
 
-- Original project files by Ethan Mills include:
-  - `code/Airsup_v1.ts` through `code/Airsup_v7.ts`
-  - project-specific documentation files in the repository root and `ProjectVersionsReadMe's/`
-- Supporting framework/template directories were sourced from:
-  - `https://github.com/deluca-mike/bf6-portal-scripting-template`
-- Team switch UI approach/templates were adapted from:
-  - `https://github.com/The0zzy/BF6-Portal-TeamSwitchUI`
-- See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for the full attribution and directory-level mapping.
+- Original project files by Ethan Mills include `src/modes/airsup/`, `src/modes/variants/`, and `docs/`
+- Supporting framework/template directories were sourced from `https://github.com/deluca-mike/bf6-portal-scripting-template`
+- Team switch UI approach/templates were adapted from `https://github.com/The0zzy/BF6-Portal-TeamSwitchUI`
+- See `THIRD_PARTY_NOTICES.md` for the full attribution mapping
 
 ## License / Copyright
 

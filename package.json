@@ -2,8 +2,10 @@
   "name": "airsup",
   "version": "1.0.0",
   "scripts": {
-  "build": "bf6-portal-bundler --entrypoint ./code/Airsup_v4.ts --outDir ./dist"
-},
+    "build": "bf6-portal-bundler --entrypoint ./src/modes/airsup/entrypoints/v7.ts --outDir ./dist",
+    "build:v7-tuning": "bf6-portal-bundler --entrypoint ./src/modes/airsup/entrypoints/v7-tuning.ts --outDir ./dist",
+    "build:v4": "bf6-portal-bundler --entrypoint ./src/modes/airsup/entrypoints/v4.ts --outDir ./dist"
+  },
   "devDependencies": {
     "@types/node": "^20.6.0",
     "bf6-portal-bundler": "^1.1.0",

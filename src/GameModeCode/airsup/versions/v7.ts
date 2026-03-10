@@ -1,7 +1,3 @@
-// --- BUNDLED TYPESCRIPT OUTPUT ---
-// @ts-nocheck
-
-// --- SOURCE: src\modes\airsup\versions\v7.ts ---
 /**
  * Airsup_v7
  * Current full-feature Air Sup mode with scoring, HUD, team switching, capture progress, and HQ redzones.
@@ -2365,9 +2361,4 @@ export function OnPlayerInteract(eventPlayer: mod.Player, eventInteractPoint: mo
     processInteractTap(eventPlayer);
 }
 //#endregion
-
-
-
-// --- SOURCE: src\modes\airsup\entrypoints\v7.ts ---
-
 
