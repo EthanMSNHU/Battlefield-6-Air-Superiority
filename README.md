@@ -30,6 +30,18 @@ This project is functionally inspired by Battlefield 4's Air Superiority mode: a
 - Battlefield 4 Air Superiority-inspired objective control design adapted for Battlefield 6 Portal
 - Support for custom air-sup map setups built from Battlefield 6 base maps through Godot `.spatial.json` level files
 
+![Air Superiority HUD Preview](docs/images/hud-preview.png)
+
+Custom in-game Air Superiority HUD showing team score bars, objective ownership, radar, and the team-switch prompt.
+
+![In-Flight Radar Preview](docs/images/silkroad-preview.png)
+
+In-flight preview of the custom Air Superiority HUD and radar system during active aircraft gameplay.
+
+![Team Switch Preview](docs/images/teamswitch-preview.png)
+
+Team-switch interface shown in-game alongside the custom Air Superiority HUD and radar systems.
+
 ## Source Layout
 
 ```text
