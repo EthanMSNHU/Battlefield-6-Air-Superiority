@@ -40,7 +40,7 @@ In-flight preview of the custom Air Superiority HUD and radar system during acti
 
 ![Team Switch Preview](docs/images/teamswitch-preview.png)
 
-Team-switch interface shown in-game alongside the custom Air Superiority HUD and radar systems.
+Team-switch interface shown in-game alongside the custom Air Superiority HUD
 
 ## Source Layout
 
