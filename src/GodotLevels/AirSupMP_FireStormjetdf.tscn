@@ -1,0 +1,430 @@
+[gd_scene load_steps=13 format=3 uid="uid://bmhhp38o5up1e"]
+
+[ext_resource type="PackedScene" path="res://static/MP_FireStorm_Terrain.tscn" id="1_vttxl"]
+[ext_resource type="PackedScene" path="res://static/MP_FireStorm_Assets.tscn" id="2_5ywfj"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Common/Sector.tscn" id="4_c8y55"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Conquest/CapturePoint.tscn" id="5_pq7xn"]
+[ext_resource type="Script" uid="uid://ck5uniw0pl6u8" path="res://addons/bf_portal/portal_tools/types/PolygonVolume/PolygonVolume.gd" id="6_qtiy1"]
+[ext_resource type="PackedScene" path="res://objects/Shared/Uncategorized/GM1083CargoTruck_01_Bed.tscn" id="7_cu0u0"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Common/CombatArea.tscn" id="8_taa48"]
+[ext_resource type="PackedScene" path="res://objects/entities/SpawnPoint.tscn" id="10_0wi78"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Common/HQ_PlayerSpawner.tscn" id="11_v2370"]
+[ext_resource type="PackedScene" path="res://objects/Global/Architecture/FiringRange_Floor_B.tscn" id="12_u8mry"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Common/VehicleSpawner.tscn" id="13_gleu4"]
+[ext_resource type="PackedScene" path="res://objects/Gameplay/Common/DeployCam.tscn" id="14_cd7xl"]
+
+[node name="MP_FireStorm" type="Node3D"]
+
+[node name="Static" type="Node3D" parent="."]
+
+[node name="MP_FireStorm_Terrain" parent="Static" instance=ExtResource("1_vttxl")]
+metadata/_edit_lock_ = true
+
+[node name="MP_FireStorm_Assets" parent="Static" instance=ExtResource("2_5ywfj")]
+metadata/_edit_lock_ = true
+
+[node name="mapbounds" parent="." node_paths=PackedStringArray("SectorArea", "CapturePoints") instance=ExtResource("4_c8y55")]
+ObjId = 200
+SectorArea = NodePath("PolygonVolume")
+CapturePoints = [NodePath("../Capturepoints/CapturePointA"), NodePath("../Capturepoints/CapturePointB"), NodePath("../Capturepoints/CapturePointC"), null, null]
+
+[node name="PolygonVolume" type="Node3D" parent="mapbounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 27.9255, 0)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-2883.27, -2930.17, -2941.52, 2933.64, 2886.62, 2892.25, 2903.33, -2846.24)
+height = 1000.0
+color = Color(0, 0.6, 0.7, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
+
+[node name="Capturepoints" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -279.651, 0, 110.451)
+
+[node name="CapturePointA" parent="Capturepoints" node_paths=PackedStringArray("CaptureArea") instance=ExtResource("5_pq7xn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 319.139, 154.068, -979.162)
+ObjId = 100
+CaptureArea = NodePath("PolygonVolume2")
+
+[node name="PolygonVolume2" type="Node3D" parent="Capturepoints/CapturePointA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.48325, -75.6013, -3.47943)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-117.491, -100.277, -117.491, 102.831, 112.585, 101.988, 111.743, -101.119)
+height = 280.0
+color = Color(0, 0.6, 0.7, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
+
+[node name="Apointblimp" parent="Capturepoints/CapturePointA" instance=ExtResource("7_cu0u0")]
+transform = Transform3D(3.99914, 0, 0.0830013, 0, 4, 0, -0.0830013, 0, 3.99914, -10.4127, -13.6819, 1679.66)
+
+[node name="CapturePointB" parent="Capturepoints" node_paths=PackedStringArray("CaptureArea") instance=ExtResource("5_pq7xn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 303.164, 147.24, -125.894)
+ObjId = 101
+CaptureArea = NodePath("PolygonVolume3")
+
+[node name="PolygonVolume3" type="Node3D" parent="Capturepoints/CapturePointB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.33752, -76.4445, -5.02027)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-122.587, -111.242, -121.967, 118.579, 119.003, 119.817, 117.765, -110.623)
+height = 280.0
+color = Color(0, 0.6, 0.7, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
+
+[node name="Bpointblimp" parent="Capturepoints/CapturePointB" instance=ExtResource("7_cu0u0")]
+transform = Transform3D(3.99983, 0, -0.0372778, 0, 4, 0, 0.0372778, 0, 3.99983, 0.277901, -11.9299, -4.75828)
+
+[node name="CapturePointC" parent="Capturepoints" node_paths=PackedStringArray("CaptureArea") instance=ExtResource("5_pq7xn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 308.622, 152.316, 703.996)
+ObjId = 102
+CaptureArea = NodePath("PolygonVolume")
+
+[node name="PolygonVolume" type="Node3D" parent="Capturepoints/CapturePointC"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.14707, -73.5956, -7.31018)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-124.372, -103.372, -124.903, 112.25, 116.528, 111.82, 117.214, -102.881)
+height = 280.0
+color = Color(0, 0.6, 0.7, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
+
+[node name="Cpointblimp" parent="Capturepoints/CapturePointC" instance=ExtResource("7_cu0u0")]
+transform = Transform3D(3.99954, 0, -0.0607345, 0, 4, 0, 0.0607345, 0, 3.99954, 11.3461, -10.1779, -1687.65)
+
+[node name="CombatArea" parent="." instance=ExtResource("8_taa48")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1458.32, 33.5003, 0)
+
+[node name="Spawns" type="Node3D" parent="."]
+transform = Transform3D(78.9591, -0.0182668, -33.8589, -0.659005, 0.999038, -2.64222, -52.6957, -0.0398647, -50.7011, 168.143, 115.294, 338.576)
+
+[node name="Sector" parent="Spawns" node_paths=PackedStringArray("SectorArea") instance=ExtResource("4_c8y55")]
+transform = Transform3D(1, -2.91038e-11, -2.98023e-08, -2.38419e-07, 1, -2.38419e-07, 5.96046e-08, -1.16415e-10, 1, 0, 0, 0)
+SectorArea = NodePath("../../Team1HQBounds")
+
+[node name="Sector2" parent="Spawns" node_paths=PackedStringArray("SectorArea") instance=ExtResource("4_c8y55")]
+SectorArea = NodePath("../../Team2HQBounds")
+
+[node name="Team1" type="Node3D" parent="Spawns"]
+transform = Transform3D(1, -1.01863e-10, -1.19209e-07, -7.15256e-07, 1, -9.53674e-07, 5.96046e-08, -2.32831e-10, 1, 9.28799, 20.7592, 5.99664)
+
+[node name="Spawn_T1_01" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.0087617, -7.31269e-05, -0.00584739, -0.0182668, 0.999037, -0.0398644, -0.00909204, -0.000709508, -0.0136146, -0.478759, -0.417854, -10.3122)
+
+[node name="Spawn_T1_02" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.557452, -0.243347, -10.2304)
+
+[node name="Spawn_T1_03" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.532454, -0.295456, -10.2563)
+
+[node name="Spawn_T1_04" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.506089, -0.350456, -10.2837)
+
+[node name="Spawn_T1_05" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.608779, -0.136276, -10.1771)
+
+[node name="Spawn_T1_06" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.636538, -0.0784683, -10.1483)
+
+[node name="Spawn_T1_07" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.0087617, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909204, -0.000709509, -0.0136146, -0.667297, -0.014267, -10.1164)
+
+[node name="Spawn_T1_08" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.0058474, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, -0.697211, 0.0473251, -10.0856)
+
+[node name="HQ_Team1" parent="Spawns/Team1" node_paths=PackedStringArray("HQArea") instance=ExtResource("11_v2370")]
+transform = Transform3D(0.00876172, -7.31265e-05, -0.00584738, -0.0182668, 0.999038, -0.0398646, -0.00909203, -0.00070951, -0.0136147, -0.75176, -0.434052, -10.2434)
+AltTeam = 0
+ObjId = 1
+HQArea = NodePath("../../../Team1HQBounds")
+
+[node name="Spawn_T1_09" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.609715, 7.54136, -7.57994)
+
+[node name="Spawn_T1_10" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.630267, 7.49835, -7.60136)
+
+[node name="Spawn_T1_11" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.65527, 7.44618, -7.6273)
+
+[node name="Spawn_T1_12" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.681625, 7.39126, -7.65465)
+
+[node name="Spawn_T1_13" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.578937, 7.60535, -7.54809)
+
+[node name="Spawn_T1_14" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.551178, 7.66315, -7.51928)
+
+[node name="Spawn_T1_15" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.0087617, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909204, -0.000709509, -0.0136146, 0.520417, 7.72747, -7.48735)
+
+[node name="Spawn_T1_16" parent="Spawns/Team1" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876171, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398645, -0.00909205, -0.000709509, -0.0136146, 0.49051, 7.78893, -7.45659)
+
+[node name="HQ_Team1_2" parent="Spawns/Team1" node_paths=PackedStringArray("HQArea") instance=ExtResource("11_v2370")]
+transform = Transform3D(0.00876172, -7.31265e-05, -0.00584738, -0.0182668, 0.999038, -0.0398645, -0.00909203, -0.00070951, -0.0136147, 0.435957, 7.30766, -7.61438)
+AltTeam = 0
+ObjId = 1
+HQArea = NodePath("../../../Team1HQBounds")
+
+[node name="spawnfloor4" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.252918, -7.31262e-05, -0.151034, -0.527293, 0.999038, -1.02968, -0.262454, -0.00070951, -0.351657, -1.57718, 1.09017, -9.45899)
+
+[node name="spawnfloor5" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.25284, -7.31262e-05, -0.0899792, -0.527129, 0.999038, -0.613435, -0.262373, -0.00070951, -0.209501, -0.628017, 7.56387, -7.25372)
+
+[node name="spawnfloor6" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.252765, -7.31262e-05, -0.134981, -0.526975, 0.999038, -0.920235, -0.262295, -0.00070951, -0.31428, -1.05685, 4.64018, -8.25282)
+
+[node name="frontwall5" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.253474, 0.00876173, -0.00122293, -1.72806, -0.0182668, 16.7076, -0.590172, -0.00909206, -0.0118657, 0.956766, 6.95265, -7.81851)
+
+[node name="frontwall6" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252936, 0.00876173, -0.00122008, -1.72439, -0.0182668, 16.6687, -0.588918, -0.00909206, -0.011838, -0.302694, 9.50883, -6.51401)
+
+[node name="frontwall7" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252306, -0.00584739, -0.00122009, 0.526018, -0.0398648, 16.6687, 0.261819, -0.0136146, -0.011838, 0.954779, 6.87598, -7.82312)
+
+[node name="frontwall8" parent="Spawns/Team1" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252306, -0.00584739, -0.00122009, 0.526018, -0.0398648, 16.6687, 0.261819, -0.0136146, -0.011838, -0.310834, -1.75245, -10.7699)
+
+[node name="Team2" type="Node3D" parent="Spawns"]
+transform = Transform3D(1, -8.44011e-10, -1.2517e-06, -5.24521e-06, 0.999998, -7.15256e-06, 5.96046e-08, -8.14907e-10, 0.999996, -3.34501, 80.2335, 13.2413)
+
+[node name="Spawn_T2_01" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.83922, -0.312012, 4.04479)
+
+[node name="Spawn_T2_02" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.81861, -0.355225, 4.02342)
+
+[node name="Spawn_T2_03" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.79867, -0.406448, 4.00271)
+
+[node name="Spawn_T2_04" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.77499, -0.446014, 3.97813)
+
+[node name="Spawn_T2_05" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.8618, -0.265091, 4.06822)
+
+[node name="Spawn_T2_06" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.87828, -0.230789, 4.08532)
+
+[node name="Spawn_T2_07" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.89769, -0.193634, 4.10546)
+
+[node name="Spawn_T2_08" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -4.91237, -0.159805, 4.1207)
+
+[node name="HQ_Team2" parent="Spawns/Team2" node_paths=PackedStringArray("HQArea") instance=ExtResource("11_v2370")]
+transform = Transform3D(0.00876172, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398647, -0.00909207, -0.000709511, -0.0136147, -4.82368, 0.652481, 4.02195)
+Team = 2
+AltTeam = 0
+ObjId = 2
+HQArea = NodePath("../../../Team2HQBounds")
+
+[node name="Spawn_T2_09" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.05116, -8.21339, 1.35953)
+
+[node name="Spawn_T2_10" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.03055, -8.25656, 1.33817)
+
+[node name="Spawn_T2_11" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.0106, -8.30772, 1.31745)
+
+[node name="Spawn_T2_12" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -5.98692, -8.34735, 1.29287)
+
+[node name="Spawn_T2_13" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.07373, -8.16638, 1.38297)
+
+[node name="Spawn_T2_14" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.09021, -8.1321, 1.40007)
+
+[node name="Spawn_T2_15" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.10963, -8.09497, 1.42021)
+
+[node name="Spawn_T2_16" parent="Spawns/Team2" instance=ExtResource("10_0wi78")]
+transform = Transform3D(0.00876174, -7.31265e-05, -0.00584739, -0.0182668, 0.999039, -0.0398648, -0.00909207, -0.000709511, -0.0136147, -6.1243, -8.0611, 1.43543)
+
+[node name="HQ_Team3" parent="Spawns/Team2" node_paths=PackedStringArray("HQArea") instance=ExtResource("11_v2370")]
+transform = Transform3D(0.00876172, -7.31269e-05, -0.00584739, -0.0182668, 0.999038, -0.0398647, -0.00909207, -0.000709511, -0.0136147, -6.03561, -7.24887, 1.3367)
+Team = 2
+AltTeam = 0
+ObjId = 2
+HQArea = NodePath("../../../Team2HQBounds")
+
+[node name="spawnfloor" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.252918, -7.31262e-05, -0.151034, -0.527295, 0.99904, -1.02968, -0.262455, -0.000709512, -0.351658, -6.40379, -8.00093, 1.54056)
+
+[node name="spawnfloor2" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.25284, -7.31262e-05, -0.0899795, -0.527131, 0.99904, -0.613438, -0.262374, -0.000709512, -0.209502, -5.45463, -1.52733, 3.74584)
+
+[node name="spawnfloor3" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(0.252765, -7.31262e-05, -0.134981, -0.526977, 0.99904, -0.92024, -0.262296, -0.000709512, -0.314281, -5.88346, -4.45102, 2.74674)
+
+[node name="frontwall" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.253475, 0.00876172, -0.00205357, -1.72807, -0.0182669, 28.0558, -0.590174, -0.0090921, -0.0199251, -3.86985, -2.13841, 3.18104)
+
+[node name="frontwall2" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252937, 0.00876172, -0.00122008, -1.7244, -0.0182669, 16.6687, -0.58892, -0.0090921, -0.011838, -5.12931, 0.417786, 4.48555)
+
+[node name="frontwall3" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252306, -0.00584741, -0.00122009, 0.52602, -0.039865, 16.6687, 0.26182, -0.0136147, -0.011838, -3.87184, -2.21512, 3.17644)
+
+[node name="frontwall4" parent="Spawns/Team2" instance=ExtResource("12_u8mry")]
+transform = Transform3D(-0.252306, -0.00584741, -0.00122009, 0.52602, -0.039865, 16.6687, 0.26182, -0.0136147, -0.011838, -5.13746, -10.8436, 0.22965)
+
+[node name="Vehicles" type="Node3D" parent="."]
+
+[node name="Team1" type="Node3D" parent="Vehicles"]
+
+[node name="Jets" type="Node3D" parent="Vehicles/Team1"]
+
+[node name="Jet_T1_01" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.00828126, -0.00443596, -0.999956, 0.0131894, 0.999904, -0.00432649, 0.999878, -0.013153, 0.00833898, 1023.23, 141.819, 20.3416)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_02" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.016056, 0, -0.999871, 0, 1, 0, 0.999871, 0, 0.016056, 1023.41, 141.706, 2.95641)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_03" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.0307834, 0, -0.999526, 0, 1, 0, 0.999526, 0, 0.0307834, 1023.62, 141.706, -18.0213)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_04" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.0071381, 0, -0.999975, 0, 1, 0, 0.999975, 0, 0.0071381, 1023.25, 141.706, -39.767)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_05" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.015393, 0, -0.999881, 0, 1, 0, 0.999881, 0, 0.015393, 1023.39, 141.706, -58.5277)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_06" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(0.00040105, 0, -1, 0, 1, 0, 1, 0, 0.00040105, 1023.33, 141.706, -76.5053)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_07" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.0167893, 0, -0.999859, 0, 1, 0, 0.999859, 0, -0.0167893, 1022.96, 141.689, 40.3162)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_08" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.00600386, 0, -0.999982, 0, 1, 0, 0.999982, 0, -0.00600386, 1022.41, 141.689, 61.171)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_09" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.00664961, 0, -0.999978, 0, 1, 0, 0.999978, 0, -0.00664961, 1022.57, 141.689, 80.2389)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T1_10" parent="Vehicles/Team1/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.00340334, 0, -0.999994, 0, 1, 0, 0.999994, 0, -0.00340334, 1023.27, 141.704, -92.3572)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Team2" type="Node3D" parent="Vehicles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -79.5376, 19.9143, -40.2509)
+
+[node name="Jets" type="Node3D" parent="Vehicles/Team2"]
+
+[node name="Jet_T2_01" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1010.27, 135.427, 116.894)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_02" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1009.32, 135.427, 100.734)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_03" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1010.2, 135.427, 79.5106)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_04" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1010.15, 135.427, 60.8343)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_05" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1010.31, 135.444, 41.0165)
+VehicleType = 15
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_06" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1010.07, 135.444, 19.2842)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_07" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.0369751, 0, 0.999316, 0, 1, 0, -0.999316, 0, -0.0369751, -1009.88, 135.427, -1.10561)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_08" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.0252173, 0, 0.999682, 0, 1, 0, -0.999682, 0, -0.0252173, -1009.99, 135.427, -18.8661)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_09" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.0445435, 0, 0.999007, 0, 1, 0, -0.999007, 0, -0.0445435, -1009.97, 135.426, -40.2763)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Jet_T2_10" parent="Vehicles/Team2/Jets" instance=ExtResource("13_gleu4")]
+transform = Transform3D(-0.019686, 0, 0.999806, 0, 1, 0, -0.999806, 0, -0.019686, -1010.09, 135.426, -58.8521)
+VehicleType = 14
+P_AutoSpawnEnabled = true
+P_DefaultRespawnTime = 10
+
+[node name="Cameras" type="Node3D" parent="."]
+
+[node name="Team1_HQ" type="Node3D" parent="Cameras"]
+
+[node name="DeployCam" parent="Cameras/Team1_HQ" instance=ExtResource("14_cd7xl")]
+transform = Transform3D(0.559584, 0.828578, 0.0180073, 3.72529e-09, -0.0217277, 0.999764, 0.828774, -0.559451, -0.0121585, 942.164, 475.03, -53.3545)
+
+[node name="Team2_HQ" type="Node3D" parent="Cameras"]
+
+[node name="DeployCam" parent="Cameras/Team2_HQ" instance=ExtResource("14_cd7xl")]
+transform = Transform3D(1, 0, 0, 0, -0.000558539, 1, 0, -1, -0.000558539, -1034.4, 461.029, -1.1255)
+
+[node name="Team1HQBounds" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 973.074, 0, -2.74104)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-291.616, -129.395, -296.914, 122.9, -261.475, 564.973, 370.762, 449.924, 375.542, -373.688, -267.539, -571.799)
+height = 600.0
+color = Color(0.875888, 0.343735, 0, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
+
+[node name="Team2HQBounds" type="Node3D" parent="."]
+transform = Transform3D(-0.999948, 0, 0.0102448, 0, 1, 0, -0.0102448, 0, -0.999948, -1112.87, 0, -2.74104)
+script = ExtResource("6_qtiy1")
+points = PackedVector2Array(-297.745, -126.87, -294.85, 128.244, -237.763, 590.991, 370.762, 449.924, 375.542, -373.688, -264.95, -548.686)
+height = 600.0
+color = Color(0, 0.6, 0.7, 0.42)
+metadata/_custom_type_script = "uid://ck5uniw0pl6u8"
